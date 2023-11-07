@@ -624,12 +624,11 @@ def calling_workflow(args):
         time = ''
 
     # STEP 2: Call Variant
-    cvp_entry = " CallVariantsFromCffi" if not args.disable_c_impl else " CallVarBam"
     echo_list.append("[INFO] Pileup Model Prediction")
     cvp_command = '( ' + time + args.parallel
     cvp_command += ' -C " " --joblog ' + args.output_dir + '/logs/parallel_1_predict.log'
     cvp_command += ' -j ' + str(args.threads)
-    cvp_command += ' ' + args.python + ' ' + main_entry + cvp_entry
+    cvp_command += ' ' + args.python + ' ' + main_entry + " call_var_bam"
     cvp_command += ' --chkpnt_fn ' + args.pileup_model_path
     cvp_command += ' --bam_fn ' + args.bam_fn
     cvp_command += ' --call_fn ' + os.path.join(args.output_dir, 'tmp', 'pileup_output', "pileup_{1}_{2}.vcf")
@@ -656,7 +655,7 @@ def calling_workflow(args):
 
     # STEP 2: MERGE VCF
     echo_list.append("[INFO] Merge Pileup VCFs")
-    p_mv_command = args.pypy + ' ' + main_entry + ' SortVcf'
+    p_mv_command = args.pypy + ' ' + main_entry + ' sort_vcf'
     p_mv_command += ' --input_dir ' + args.output_dir + '/tmp/pileup_output'
     p_mv_command += ' --vcf_fn_prefix ' + 'pileup'
     p_mv_command += ' --output_fn ' + os.path.join(args.output_dir, args.output_prefix +'.vcf' )
@@ -950,7 +949,7 @@ def param_parser():
     optional_params.add_argument(
         "--disable_c_impl",
         action='store_true',
-        help='Disable C implement with cffi for pileup and full-alignment create tensor, default: enable.'
+        help=SUPPRESS
     )
 
     ##If set then will use GPUs for inference. CUDA required

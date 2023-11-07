@@ -36,24 +36,16 @@ DATA_PREP_SCRIPTS_FOLDER="src"
 DEEP_LEARNING_FOLDER="clair3_rna"
 
 deep_learning_folder = [
-    "CallVarBam",
-    "CallVariants",
-    "Train",
+    "call_var_bam",
+    "call_variants",
 ]
 
 data_preprocess_folder = [
-    'GetOverallMetrics',
     "get_rna_bed",
     "cal_truth_vcf_af_distribution",
     "concat_files",
-    "GetTruth",
-    "Tensor2Bin",
-    'CreateTensorPileup',
-    'CreateTrainingTensor',
-    'SplitExtendBed',
-    'MergeBin',
-    'SelectHetSnp',
-    'SortVcf',
+    'create_tensor_pileup',
+    'sort_vcf',
     "compare_vcf"
 ]
 
