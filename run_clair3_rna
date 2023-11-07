@@ -58,7 +58,7 @@ major_contigs_order = ["chr" + str(a) for a in list(range(1, 23))] + [str(a) for
 
 
 file_directory = os.path.dirname(os.path.realpath(__file__))
-main_entry = os.path.join(file_directory, "clair3.py")
+main_entry = os.path.join(file_directory, "clair3_rna.py")
 MAX_STEP = 20
 
 OutputPath = namedtuple('OutputPath', [
@@ -444,7 +444,6 @@ def check_contigs_intersection(args, fai_fn):
 
     return args
 
-
 def check_args(args):
 
     if args.conda_prefix is None:
@@ -480,14 +479,30 @@ def check_args(args):
     if args.pileup_model_path is None:
         args.pileup_model_path = os.path.join(args.conda_prefix, 'bin', 'clair3_rna_models', args.platform, 'pileup')
 
+    output = file_path_from(file_name=args.pileup_model_path + '.index', exit_on_not_found=True, is_directory=False, allow_none=False)
 
-    args.pileup_model_path = file_path_from(file_name=args.pileup_model_path + '.index', exit_on_not_found=True, is_directory=False, allow_none=False)
+    if args.tagging_variant_using_readiportal:
+
+        if args.readiportal_source_fn is None:
+            if not args.use_grch38_source_fn and not args.use_grch37_source_fn:
+                print('[INFO] Use GRCh38 as reference file to tag RNA editing sites')
+                args.use_grch38_source_fn = True
+
+            file_name = 'TABLE1_hg38.txt' if args.use_grch38_source_fn else "TABLE1_hg19.txt"
+            args.readiportal_source_fn = os.path.join(args.conda_prefix, 'bin', 'clair3_rna_models', file_name)
+        else:
+            print('[INFO] Own REDIportal source file provided, use for tag RNA editing sites')
+        args.readiportal_source_fn = file_path_from(file_name=args.readiportal_source_fn, exit_on_not_found=True,
+                                                is_directory=False, allow_none=False)
+        if args.db_filter_tag is None:
+            args.db_filter_tag = param.db_filter_tag
 
     if args.snp_min_af is None:
         args.snp_min_af = param.snp_min_af
 
     if args.indel_min_af is None:
         args.indel_min_af = param.indel_min_af
+
     if args.min_coverage is None:
         args.min_coverage = param.min_coverage
 
@@ -496,8 +511,9 @@ def check_args(args):
 
     if args.chunk_size is None:
         args.chunk_size = param.CHUNK_SIZE
-    if args.platform not in {'ont_r9_cdna', 'ont_drna', 'hifi_sequel2', 'hifi_mas',}:
-        logging(log_error('[ERROR] Invalid platform input, optional: {ont_r9_cdna, ont_drna, hifi_sequel2, hifi_mas}'))
+
+    if args.platform not in {'ont_r9_cdna', 'ont_r9_drna', 'hifi_sequel2', 'hifi_mas',}:
+        logging(log_error('[ERROR] Invalid platform input, optional: {ont_r9_cdna, ont_r9_drna, hifi_sequel2, hifi_mas}'))
 
     if args.qual is None:
         args.qual = param.qual_cut_off
@@ -608,7 +624,7 @@ def calling_workflow(args):
         time = ''
 
     # STEP 2: Call Variant
-    cvp_entry = " CallVariantsFromCffi" if args.disable_c_impl else " CallVarBam"
+    cvp_entry = " CallVariantsFromCffi" if not args.disable_c_impl else " CallVarBam"
     echo_list.append("[INFO] Pileup Model Prediction")
     cvp_command = '( ' + time + args.parallel
     cvp_command += ' -C " " --joblog ' + args.output_dir + '/logs/parallel_1_predict.log'
@@ -646,9 +662,12 @@ def calling_workflow(args):
     p_mv_command += ' --output_fn ' + os.path.join(args.output_dir, args.output_prefix +'.vcf' )
     p_mv_command += ' --cmd_fn ' + os.path.join(args.output_dir, 'tmp', 'CMD')
     p_mv_command += ' --ref_fn ' + args.ref_fn
+    p_mv_command += ' --qual ' + str(args.qual) if args.qual is not None else ""
+    p_mv_command += ' --tagging_variant_using_readiportal True' if args.tagging_variant_using_readiportal is not None else ""
+    p_mv_command += ' --readiportal_source_fn ' + str(args.readiportal_source_fn) if args.readiportal_source_fn is not None else ""
+    p_mv_command += ' --db_filter_tag ' + str(args.db_filter_tag) if args.db_filter_tag is not None else ""
+    p_mv_command += ' --compress_vcf True '
     p_mv_command += ' --contigs_fn ' + os.path.join(args.output_dir, 'tmp', 'CONTIGS')
-
-
     commands_list += [p_mv_command]
 
     # excute commands step by step
@@ -739,7 +758,7 @@ def param_parser():
         "--pileup_model_path",
         type=str,
         default=None,
-        help="Specify the path to your own pileup model."
+        help="Specify the path prefix to your own pileup model. Including ${pileup_model_path}.data-00000-of-00001, ${pileup_model_path}.index."
     )
 
     optional_params.add_argument(
@@ -747,7 +766,7 @@ def param_parser():
         "--ctg_name",
         type=str,
         default=None,
-        help="The name of the contigs to be processed. Split by ',' for multiple contigs. Default: all contigs from chr1-chr22 will be processed."
+        help="The name of the contigs to be processed. Split by ',' for multiple contigs. Default: call in chr{1..22} and {1..22}."
     )
 
     region_group = optional_params.add_mutually_exclusive_group(required=False)
@@ -797,7 +816,7 @@ def param_parser():
         "--indel_min_af",
         type=float,
         default=None,
-        help="Minimum Indel AF required for a candidate variant to be called."
+        help="Minimum Indel AF required for a candidate variant to be called. Default: ont:0.15,hifi:0.08."
     )
 
     optional_params.add_argument(
@@ -886,7 +905,44 @@ def param_parser():
         "--min_mq",
         type=int,
         default=None,
-        help="Minimal coverage required for a variant to be called. Default: 4."
+        help="Minimal mapping quality required for a variant to be called. Default: 5."
+    )
+
+    #
+    # Disable C implement with cffi for pileup and full-alignment create tensor, default: enable.'
+    optional_params.add_argument(
+        "--tagging_variant_using_readiportal",
+        action='store_true',
+        help='Tagging variants uisng REDIportal dataset, If set, variants in the readiportal dataset will be marked as "RNAEditing", default: disable.'
+    )
+
+    optional_params.add_argument(
+        "--readiportal_source_fn",
+        type=str,
+        default=None,
+        help='The source file of readiportal dataset, support GRCh38 and GRCh37 reference source.'
+    )
+
+    optional_params.add_argument(
+        "--db_filter_tag",
+        type=str,
+        default=None,
+        help='Database filter tag in readiportal dataset, split by ":" for multiple tags. Default: "A,D:A,R:A,R,D"'
+    )
+
+    db_group = optional_params.add_mutually_exclusive_group(required=False)
+
+    db_group.add_argument(
+        "--use_grch38_source_fn",
+        action='store_true',
+        help="Use REDIportal GRCh38 source file for tagging RNA editing site."
+    )
+
+    db_group.add_argument(
+        "--use_grch37_source_fn",
+        action='store_true',
+        default=None,
+        help="Use REDIportal GRCh37 source file for tagging RNA editing site."
     )
 
     #
