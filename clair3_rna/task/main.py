@@ -1,8 +1,8 @@
 from collections import namedtuple
 
-from clair3.task.genotype import Genotype, genotype_enum_from, genotype_enum_for_task
-from clair3.task.gt21 import *
-from clair3.task.variant_length import VariantLength
+from clair3_rna.task.genotype import Genotype, genotype_enum_from, genotype_enum_for_task
+from clair3_rna.task.gt21 import *
+from clair3_rna.task.variant_length import VariantLength
 
 OutputLabelNamedTuple = namedtuple(
     'BasePredictNamedTuple', ['output_label_count', 'y_start_index', 'y_end_index']
