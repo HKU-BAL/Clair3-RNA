@@ -174,31 +174,35 @@ def sort_vcf_from(args):
     rediportal_variant_dict = defaultdict()
     if args.tagging_variant_using_readiportal:
         print("[INFO] Reading readiportal source file ...")
-        db_filter_tag = set(args.db_filter_tag.split(':'))
+        db_filter_tag = set(args.db_filter_tag.split(':')) if args.db_filter_tag is not None else None
+
         #allow gzip format
-        unzip_process = subprocess_popen(shlex.split("gzip -fdc %s" % (args.readiportal_source_fn)))
-        for row_idx, row in enumerate(unzip_process.stdout):
-            if row_idx == 0:
-                continue
+        if args.readiportal_source_fn is None or not os.path.exists(args.readiportal_source_fn):
+            print('[WARNING] Enabled tagging variant using readiportal, but --readiportal_source_fn {} file not found, skip tagging!'.format(args.readiportal_source_fn))
+        else:
+            unzip_process = subprocess_popen(shlex.split("gzip -fdc %s" % (args.readiportal_source_fn)))
+            for row_idx, row in enumerate(unzip_process.stdout):
+                if row_idx == 0:
+                    continue
 
-            columns = row.rstrip().split('\t', maxsplit=6)
-            if len(contigs_order_list) and columns[0] not in contigs_order_list:
-                continue
-            try:
-                key = (columns[0], int(columns[1]))
-            except:
-                print(columns[1])
-                continue
-            db_filter = columns[5]
+                columns = row.rstrip().split('\t', maxsplit=6)
+                if len(contigs_order_list) and columns[0] not in contigs_order_list:
+                    continue
+                try:
+                    key = (columns[0], int(columns[1]))
+                except:
+                    print(columns[1])
+                    continue
+                db_filter = columns[5]
 
-            if db_filter not in db_filter_tag:
-                continue
+                if db_filter_tag is not None and db_filter not in db_filter_tag:
+                    continue
 
-            ref_base, alt_base = columns[2:4]
-            rediportal_variant_dict[key] = (ref_base, alt_base, db_filter)
+                ref_base, alt_base = columns[2:4]
+                rediportal_variant_dict[key] = (ref_base, alt_base, db_filter)
 
-        unzip_process.stdout.close()
-        unzip_process.wait()
+            unzip_process.stdout.close()
+            unzip_process.wait()
 
     row_count = 0
     header = []
@@ -269,7 +273,6 @@ def sort_vcf_from(args):
     if compress_vcf:
         compress_index_vcf(output_fn)
 
-    print(args.tagging_variant_using_readiportal, len(rediportal_variant_dict))
     if args.tagging_variant_using_readiportal:
         print('[INFO] Total variants tagged by REDIportal dataset: {}'.format(tag_by_rediportal_num))
 

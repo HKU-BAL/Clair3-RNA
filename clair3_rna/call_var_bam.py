@@ -88,10 +88,10 @@ def check_return_code(signum, frame):
 def Run(args):
     basedir = dirname(__file__)
 
-    CTP_Bin = basedir + "/../clair3_rna.py CreateTensorPileup"
-    CTFA_Bin = basedir + "/../clair3_rna.py CreateTensorFullAlignment"
+    CTP_Bin = basedir + "/../clair3_rna.py create_tensor_pileup"
+    CTFA_Bin = basedir + "/../clair3_rna.py create_tensor_full_alignment"
     RR_Bin = basedir + "/../clair3_rna.py RealignReads"
-    CVBin = basedir + "/../clair3_rna.py CallVariants"
+    CVBin = basedir + "/../clair3_rna.py call_variants"
 
     if args.delay > 0:
         delay = random.randrange(0, args.delay)

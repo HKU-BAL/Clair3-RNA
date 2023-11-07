@@ -1462,11 +1462,11 @@ def call_variants(args, output_config, output_utilities):
     global param
     if args.pileup:
         import shared.param_p as param
-        from clair3.model import Clair3_P
+        from clair3_rna.model import Clair3_P
         m = Clair3_P(add_indel_length=args.add_indel_length, predict=True)
     else:
         import shared.param_f as param
-        from clair3.model import Clair3_F
+        from clair3_rna.model import Clair3_F
         m = Clair3_F(add_indel_length=args.add_indel_length, predict=True)
 
     m.load_weights(args.chkpnt_fn)
@@ -1690,10 +1690,10 @@ def predict(args, output_config, output_utilities):
         os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
     if args.pileup:
-        from clair3.model import Clair3_P
+        from clair3_rna.model import Clair3_P
         m = Clair3_P(add_indel_length=args.add_indel_length, predict=True)
     else:
-        from clair3.model import Clair3_F
+        from clair3_rna.model import Clair3_F
         m = Clair3_F(add_indel_length=args.add_indel_length, predict=True)
 
     batch_output_method = batch_output_for_ensemble if output_config.is_output_for_ensemble else batch_output
