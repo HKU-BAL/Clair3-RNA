@@ -63,7 +63,7 @@ def mark_rediportal(row, item):
     ref_base, alt_base = columns[3], columns[4]
     if red_ref_base == ref_base and red_alt_base == alt_base:
         columns[6] = "RNAEditing"
-        columns[7] = str(db_filter)
+        # columns[7] = str(db_filter)
         tag_by_rediportal = True
 
     return '\t'.join(columns), tag_by_rediportal
@@ -172,7 +172,7 @@ def sort_vcf_from(args):
     contigs_order_list = sorted(all_contigs_list, key=lambda x: contigs_order.index(x))
 
     rediportal_variant_dict = defaultdict()
-    if args.tagging_variant_using_readiportal:
+    if args.tag_variant_using_readiportal:
         print("[INFO] Reading readiportal source file ...")
         db_filter_tag = set(args.db_filter_tag.split(':')) if args.db_filter_tag is not None else None
 
@@ -273,7 +273,7 @@ def sort_vcf_from(args):
     if compress_vcf:
         compress_index_vcf(output_fn)
 
-    if args.tagging_variant_using_readiportal:
+    if args.tag_variant_using_readiportal:
         print('[INFO] Total variants tagged by REDIportal dataset: {}'.format(tag_by_rediportal_num))
 
     print("[INFO] Finished VCF sorting!")
@@ -312,7 +312,7 @@ def main():
     parser.add_argument('--qual', type=int, default=2,
                         help="If set, variants with >$qual will be marked 'PASS', or 'LowQual' otherwise, optional")
 
-    parser.add_argument('--tagging_variant_using_readiportal', type=str2bool, default=None,
+    parser.add_argument('--tag_variant_using_readiportal', type=str2bool, default=None,
                         help="If defined, added command line into VCF header")
 
     parser.add_argument('--readiportal_source_fn', type=str_none, default=None,
