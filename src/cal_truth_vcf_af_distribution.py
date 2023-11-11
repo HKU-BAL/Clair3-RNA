@@ -167,19 +167,26 @@ def cal_af(args, truth_variant_dict=None, input_variant_dict=None):
         POS = variant_dict[pos]
         pos = POS.pos
         ref_base = POS.reference_bases
-        alt_base = POS.alternate_bases[0].upper()
+        alt_base_list = [item.upper() for item in POS.alternate_bases]
         ctg_name = POS.ctg_name
 
-        match_alt_base = alt_base
-        if len(ref_base) == 1 and len(alt_base) > 1:
-            match_alt_base = alt_base[0].upper() + '+' + alt_base[1:].upper()
-        if len(ref_base) > 1 and len(alt_base) == 1:
-            match_alt_base = ref_base[0].upper() + '-' + len(ref_base[1:]) * "N"
+        base_counter, base_list = get_base_list(columns)
 
-        tumor_base_counter, base_list = get_base_list(columns)
-        alt_count = tumor_base_counter[match_alt_base]
+        alt_count_list = []
+        for alt_base in alt_base_list:
+            match_alt_base = alt_base
+            if len(ref_base) == 1 and len(alt_base) > 1:
+                match_alt_base = alt_base[0].upper() + '+' + alt_base[1:].upper()
+            if len(ref_base) > 1 and len(alt_base) == 1:
+                match_alt_base = ref_base[0].upper() + '-' + len(ref_base[1:]) * "N"
 
-        result = [ctg_name, pos, len(base_list), alt_count]
+
+            alt_count = base_counter[match_alt_base]
+            alt_count_list.append(str(alt_count))
+
+        #allow multiple alternates
+        alt_str = ','.join(alt_count_list)
+        result = [ctg_name, pos, len(base_list), alt_str]
 
         results_dict[pos] = result
         total_num += 1
