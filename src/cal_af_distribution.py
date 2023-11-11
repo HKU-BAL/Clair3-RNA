@@ -38,7 +38,7 @@ from argparse import ArgumentParser
 from collections import defaultdict
 
 from shared.vcf import VcfReader
-import shared.param as param
+import shared.param_p as param
 from shared.utils import str2bool
 
 def get_base_list(columns, args=None):

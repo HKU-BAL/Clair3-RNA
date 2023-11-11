@@ -38,7 +38,6 @@ from shared.utils import str2bool, str_none
 from shared.vcf import VcfReader, VcfWriter
 from shared.interval_tree import bed_tree_from, is_region_in
 from shared.utils import file_path_from
-from src.cal_af_distribution import cal_af
 
 major_contigs_order = ["chr" + str(a) for a in list(range(1, 23)) + ["X", "Y"]] + [str(a) for a in
                                                                                    list(range(1, 23)) + ["X", "Y"]]
@@ -149,6 +148,7 @@ def compare_vcf(args):
                 print("[WARNING] PATH not found: {}".format(low_af_path))
                 is_all_path_exist = False
         if args.low_af_path is None or not is_all_path_exist:
+            from src.cal_af_distribution import cal_af
             if args.normal_bam_fn is None or args.tumor_bam_fn is None or (not (os.path.exists(args.normal_bam_fn) and os.path.exists(args.tumor_bam_fn))):
                 sys.exit("[ERROR] Pls input --normal_bam_fn and --tumor_bam_fn for calculation")
             result_dict = cal_af(args, truth_variant_dict, input_variant_dict)
@@ -158,16 +158,12 @@ def compare_vcf(args):
                 fp = open(low_af_path).readlines()
                 fp = [item.rstrip().split(' ') for item in fp]
                 for row in fp:
-                    ctg, pos, normal_cov, tumor_cov, normal_alt, tumor_alt, *hap_info = row
-                    result_dict[ctg, int(pos)] = ctg, pos, normal_cov, tumor_cov, normal_alt, tumor_alt, hap_info
+                    ctg, pos, tumor_cov, tumor_alt = row[:4]
+                    result_dict[ctg, int(pos)] = ctg, pos, tumor_cov, tumor_alt
 
                 for k, v in result_dict.items():
-                    ctg_name, pos, normal_cov, tumor_cov, normal_alt, tumor_alt = v[:6]
+                    ctg_name, pos, tumor_cov, tumor_alt = v[:4]
                     key = int(pos) if args.ctg_name is not None else (ctg_name, int(pos))
-                    if idx == 0:
-                        if int(normal_cov) <= args.min_coverage and not skip_normal:
-                            low_af_truth.add(key)
-                            no_normal_count += 1
                     if int(tumor_alt) == 0 or int(tumor_cov) == 0:
                         low_af_truth.add(key)
                         no_tumor_alt_count += 1
@@ -187,49 +183,6 @@ def compare_vcf(args):
 
     phasable_count = 0
     non_phasable_count = 0
-    if args.validate_phase_only is not None:
-        unphase = 0
-        phase_dict = defaultdict()
-        if args.phase_output is not None:
-            for item in open(args.phase_output).readlines():
-                ctg, pos, normal_cov, tumor_cov, normal_alt, tumor_alt, *hap_info = item.rstrip().split(' ')
-                phase_dict[ctg, int(pos)] = (ctg, pos, normal_cov, tumor_cov, normal_alt, tumor_alt, hap_info)
-        else:
-            phase_dict = result_dict
-        for item in phase_dict.values():
-            ctg, pos, normal_cov, tumor_cov, normal_alt, tumor_alt, hap_info = item
-            hp0, hp1, hp2, all_hp0, all_hp1, all_hp2 = [int(i) for i in hap_info]
-            key = int(pos) if args.ctg_name is not None else (ctg, int(pos))
-            if key in input_variant_dict:
-                continue
-
-            phaseable = all_hp1 * all_hp2 > 0 and hp1 * hp2 == 0 and (
-                        int(hp1) > args.min_alt_coverage or int(hp2) > args.min_alt_coverage)
-            # phaseable 1 non phaseable 2
-            if int(args.validate_phase_only) == 1 and not phaseable:
-                low_af_truth.add(key)
-                continue
-            if int(args.validate_phase_only) == 2 and phaseable:
-                low_af_truth.add(key)
-                continue
-
-        for k, v in input_variant_dict.items():
-            columns = v.row_str.rstrip().split('\t')
-            phaseable = columns[7] == 'H'
-            if phaseable:
-                phasable_count += 1
-            else:
-                non_phasable_count += 1
-
-            if int(args.validate_phase_only) == 1 and not phaseable:
-                low_af_truth.add(k)
-                continue
-            if int(args.validate_phase_only) == 2 and phaseable:
-                low_af_truth.add(k)
-                continue
-
-        print("[INFO] Fail or non-phasable:", non_phasable_count, 'Low ALT base phase count :', unphase, "Phasable:",
-              phasable_count)
 
     if high_confident_only:
         for key in list(truth_variant_dict.keys()):

@@ -544,18 +544,27 @@ def print_args(args):
     logging("[INFO] OUTPUT FOLDER: {}".format(args.output_dir))
     logging("[INFO] OUTPUT VCF PATH: {}".format(os.path.join(args.output_dir, args.output_prefix + '.vcf.gz')))
     logging("[INFO] PILEUP MODEL PATH: {}".format(args.pileup_model_path))
+    logging("[INFO] CONTIGS FOR CALLING: {}".format(args.ctg_name))
     logging("[INFO] BED FILE PATH: {}".format(args.bed_fn))
     logging("[INFO] GENOTYPING MODE VCF FILE PATH: {}".format(args.genotyping_mode_vcf_fn))
+    logging("[INFO] QUAL FOR PASS VARIANT: {}".format(args.qual))
+    logging("[INFO] SNP MINIMUM AF: {}".format(args.snp_min_af))
+    logging("[INFO] INDEL MINIMUM AF: {}".format(args.indel_min_af))
+    logging("[INFO] MINIMUM COVERAGE: {}".format(args.min_coverage))
+    logging("[INFO] CHUNK SIZE: {}".format(args.chunk_size))
+    logging("[INFO] SAMPLE NAME: {}".format(args.sample_name))
     logging("[INFO] REGION FOR CALLING: {}".format(args.region))
-    logging("[INFO] CONTIGS FOR CALLING: {}".format(args.ctg_name))
     logging("[INFO] CONDA BINARY PREFIX: {}".format(args.conda_prefix))
     logging("[INFO] SAMTOOLS BINARY PATH: {}".format(args.samtools))
     logging("[INFO] PYTHON BINARY PATH: {}".format(args.python))
     logging("[INFO] PYPY BINARY PATH: {}".format(args.pypy))
     logging("[INFO] PARALLEL BINARY PATH: {}".format(args.parallel))
-    logging("[INFO] CHUNK SIZE: {}".format(args.chunk_size))
-    logging("[INFO] SNP MINIMUM AF: {}".format(args.snp_min_af))
-    logging("[INFO] INDEL MINIMUM AF: {}".format(args.indel_min_af))
+    logging("[INFO] TAG VARIANT USING READIPORTAL DATASET: {}".format(args.tagging_variant_using_readiportal))
+    if args.tagging_variant_using_readiportal:
+        logging("[INFO] READIPORTAL DATASET SOURCE FILE: {}".format(args.readiportal_source_fn))
+        logging("[INFO] READIPORTAL DATASET FILTER TAG: {}".format(args.db_filter_tag))
+        logging("[INFO] USE GRCH38 AS SOURCE FILE: {}".format(args.use_grch38_source_fn))
+        logging("[INFO] USE GRCH37 AS SOURCE FILE: {}".format(args.use_grch37_source_fn))
     logging("[INFO] ENABLE DRY RUN: {}".format(args.dry_run))
     logging("[INFO] ENABLE PRINTING REFERENCE CALLS: {}".format(args.print_ref_calls))
     logging("[INFO] ENABLE INCLUDING ALL CTGS FOR CALLING: {}".format(args.include_all_ctgs))
@@ -602,6 +611,14 @@ def print_command_line(args):
         cmdline += '--pypy {} '.format(args.pypy) if args.pypy != "pypy3" else ""
         cmdline += '--samtools {} '.format(args.samtools) if args.samtools != "samtools" else ""
         cmdline += '--parallel {} '.format(args.parallel) if args.parallel != "parallel" else ""
+        cmdline += '--min_mq {}'.format(args.min_mq) if args.min_mq is not None else ""
+        cmdline += '--tagging_variant_using_readiportal ' if args.tagging_variant_using_readiportal is not None else ""
+        cmdline += '--readiportal_source_fn {} '.format(args.readiportal_source_fn) if args.readiportal_source_fn is not None else ""
+        cmdline += '--db_filter_tag {} '.format(args.db_filter_tag) if args.db_filter_tag is not None else ""
+        cmdline += '--use_grch38_source_fn ' if args.use_grch38_source_fn is not None else ""
+        cmdline += '--use_grch37_source_fn ' if args.use_grch37_source_fn is not None else ""
+
+        #control command
         cmdline += '--use_gpu ' if args.use_gpu else ""
         cmdline += '--indel_min_af {} '.format(args.indel_min_af) if args.indel_min_af is not None else ""
         cmdline += '--conda_prefix {} '.format(args.conda_prefix) if args.conda_prefix is not None else ""
