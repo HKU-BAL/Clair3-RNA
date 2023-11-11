@@ -5,7 +5,6 @@ from textwrap import dedent
 from subprocess import run
 from collections import defaultdict
 
-# from shared.utils import subprocess_popen, Position as Position, file_path_from
 from shared.utils import subprocess_popen, file_path_from
 import shared.param_p as param
 
@@ -393,7 +392,7 @@ class VcfReader(object):
                 tag_list = columns[8].split(':')
                 if 'AF' in tag_list or 'VAF' in tag_list:
                     taf_index = tag_list.index('AF') if 'AF' in tag_list else tag_list.index('VAF')
-                    taf = float(columns[9].split(':')[taf_index])
+                    taf = float(columns[9].split(':')[taf_index].split(',')[0])
                 else:
                     taf = None
             else:
@@ -419,7 +418,7 @@ class VcfReader(object):
                 tag_list = columns[8].split(':')
                 if 'AD' in tag_list:
                     ad_index = tag_list.index('AD')
-                    AD = float(columns[9].split(':')[ad_index])
+                    AD = columns[9].split(':')[ad_index]
 
             self.variant_dict[key] = Position(ctg_name=chromosome,
                                               pos=position,
