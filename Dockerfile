@@ -64,8 +64,8 @@ COPY . .
 
 RUN /bin/bash -c "source activate clair3_rna" && \
     wget http://www.bio8.cs.hku.hk/clair3_rna/models/clair3_rna_models.tar.gz	 -P /opt/models && \
-    mkdir -p /opt/conda/envs/clair3/bin/clair3_rna_models && \
-    tar -zxvf /opt/models/clair3_rna_models.tar.gz -C /opt/conda/envs/clair3/bin/clair3_rna_models && \
+    mkdir -p /opt/conda/envs/clair3_rna/bin/clair3_rna_models && \
+    tar -zxvf /opt/models/clair3_rna_models.tar.gz -C /opt/conda/envs/clair3_rna/bin/clair3_rna_models && \
     rm /opt/models/clair3_rna_models.tar.gz && \
     echo 'will cite' | parallel --citation || true \
     echo "source activate clair3_rna" > ~/.bashrc
