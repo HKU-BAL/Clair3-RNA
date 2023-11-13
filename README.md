@@ -202,7 +202,7 @@ docker run -it hkubal/clair3-rna:latest /opt/bin/clair3_rna --help
   -t THREADS, --threads THREADS
                         Max #threads to be used.
   -p PLATFORM, --platform PLATFORM
-                        Select the sequencing platform of the input. Possible options: {ont_r9_cdna, ont_r9_drna, hifi_sequel2, hifi_mas}.
+                        Select the sequencing platform of the input. Possible options: {ont_r9_guppy_cdna, ont_r9_guppy_drna, hifi_sequel2, hifi_mas}.
 ```
 
 **Miscellaneous parameters:**
