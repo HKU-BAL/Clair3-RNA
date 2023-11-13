@@ -108,14 +108,14 @@ hkubal/clair3-rna:latest \
 pypy3 /opt/bin/clair3_rna.py calculate_overall_metrics \
     --happy_vcf_fn ${OUTPUT_DIR}/happy.vcf.gz \
     --input_vcf_fn ${OUTPUT_VCF_FILE_PATH} \
-    --output_fn ${OUTPUT_VCF_FILE_PATH}/METRICS \
+    --output_fn ${OUTPUT_DIR}/METRICS \
     --min_coverage 4 \
     --min_alt_coverage 2 \
     --min_af 0.05 \
     --skip_genotyping False \
     --ctg_name chr1 \
     --input_filter_tag 'PASS' \
-    --truths_info_fn ${OUTPUT_FOLDER}/vcf_output/truths
+    --truths_info_fn ${OUTPUT_DIR}/vcf_output/truths
 ```
 
 **Expected output:**
