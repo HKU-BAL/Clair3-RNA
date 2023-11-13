@@ -28,6 +28,8 @@ BASELINE_BED_FILE_PATH="${INPUT_DIR}/HG004_GRCh38_1_22_v4.2.1_benchmark_chr1.bed
 RNA_BED_FILE_PATH="${OUTPUT_DIR}/final.bed"
 OUTPUT_VCF_FILE_PATH="${OUTPUT_DIR}/output.vcf.gz"
 
+cd ${OUTPUT_DIR}
+
 # Run Clair3-RNA in one command
 docker run -it \
 -v ${INPUT_DIR}:${INPUT_DIR} \

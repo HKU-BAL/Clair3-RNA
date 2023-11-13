@@ -139,7 +139,7 @@ chmod +x ./Miniconda3-latest-Linux-x86_64.sh
 ```bash
 # create and activate an environment named clair3_rna
 # install pypy and packages in the environemnt
-conda create -n clair3_rna -c conda-forge -c bioconda clair3 mosdepth bcftools -y
+conda create -n clair3_rna -c conda-forge -c bioconda clair3 mosdepth bedtools -y
 source activate clair3_rna
 
 git clone https://github.com/HKU-BAL/Clair3-RNA.git
