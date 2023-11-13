@@ -37,11 +37,6 @@ from subprocess import PIPE
 from argparse import ArgumentParser
 
 
-major_contigs = {"chr" + str(a) for a in list(range(1, 23))}.union(
-    {str(a) for a in list(range(1, 23))})
-major_contigs_order = ["chr" + str(a) for a in list(range(1, 23))] + [str(a) for a in
-                                                                                   list(range(1, 23))]
-
 def subprocess_popen(args, stdin=None, stdout=PIPE, stderr=stderr, bufsize=8388608):
     return Popen(args, stdin=stdin, stdout=stdout, stderr=stderr, bufsize=bufsize, universal_newlines=True)
 
@@ -64,6 +59,11 @@ def get_rna_bed(args):
     cmd_output = os.path.join(output_dir, "CMD",)
     if not os.path.exists(output_dir):
         output = subprocess.run("mkdir -p {}".format(output_dir), shell=True)
+
+    major_contigs = {"chr" + str(a) for a in list(range(1, 23))}.union(
+        {str(a) for a in list(range(1, 23))})
+    major_contigs_order = ["chr" + str(a) for a in list(range(1, 23))] + [str(a) for a in
+                                                                          list(range(1, 23))]
 
     # cal mosdepth for the bam
     mos_depth_command = "{}".format(mosdepth)

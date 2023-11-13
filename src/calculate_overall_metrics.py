@@ -71,9 +71,9 @@ def str2bool(v):
 
 def metrics(query_fp, query_tp, truth_fn, truth_tp):
     # https://github.com/Illumina/hap.py/blob/master/doc/happy.md
-    precision = query_tp / (query_tp + query_fp)
-    recall = truth_tp / (truth_tp + truth_fn)
-    f1_score = 2 * precision * recall / (precision + recall)
+    precision = query_tp / (query_tp + query_fp) if (query_tp + query_fp) > 0 else 0.0
+    recall = truth_tp / (truth_tp + truth_fn) if (truth_tp + truth_fn) > 0 else 0.0
+    f1_score = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
     return round(precision, 6), round(recall, 6), round(f1_score, 6)
 
 
@@ -130,7 +130,7 @@ def Cal(args):
                 alt_cov_list = [float(item) for item in alt_cov.split(',')]
 
                 af = [float(item / cov) if cov > 0 else 0.0 for item in alt_cov_list]
-                key = (ctg, int(pos)) if ctg is None else int(pos)
+                key = (ctg, int(pos)) if args.ctg_name is None else int(pos)
                 truths_dict[key] = (cov, alt_cov_list, af)
                 if args.bed_fn is not None and not is_region_in(bed_tree, ctg, pos):
                     print('Not in BED')
@@ -199,6 +199,7 @@ def Cal(args):
     for row in happy_vcf_unzip_process.stdout:
         if row[0] == '#':
             continue
+
         columns = row.strip().split()
 
         ctg, pos = columns[0], int(columns[1])
@@ -222,7 +223,7 @@ def Cal(args):
                 if min_alt_coverage is not None and ad < min_alt_coverage:
                     fail_to_pass_filtering = True
                     break
-                if af < min_af:
+                if min_af is not None and af < min_af:
                     fail_to_pass_filtering = True
                     break
         if fail_to_pass_filtering:
@@ -233,6 +234,9 @@ def Cal(args):
         FORMAT = FORMAT.split(':')
         TRUTH = TRUTH.split(':')
         QUERY = QUERY.split(':')
+
+        if 'UNK' in TRUTH and 'UNK' in QUERY:
+            continue
 
         ft_dict = dict(zip(FORMAT, TRUTH))
         fq_dict = dict(zip(FORMAT, QUERY))
@@ -352,23 +356,22 @@ def Cal(args):
     print('\n', file=output_file)
 
     if args.output_best_f1_score:
-
         results = output_best_cut_off(snp_query_fp_qual_dict, snp_query_tp_qual_dict, len(snp_truth_fn_set), truth_tp_count=len(snp_truth_tp_set), use_int_cut_off=args.use_int_cut_off)
         best_match = results[0].copy()
         best_match[0] = 'SNV(Best F1)'
         print(
             ''.join(
                 [str(item).ljust(13) if idx >= 4 or idx == 0 else ('%.4f' % item).ljust(13) for idx, item in
-                 enumerate(best_match)]),)
-            # file=output_file)
+                 enumerate(best_match)]),#)
+            file=output_file)
 
         if args.debug:
             print("")
             for result in results:
                 print(''.join(
                     [str(item).ljust(13) if idx >= 4 or idx == 0 else ('%.4f' % item).ljust(13) for idx, item in
-                     enumerate(result)]),)
-                    # file=output_file)
+                     enumerate(result)]),#)
+                    file=output_file)
 
     if output_fn:
         output_file.close()
