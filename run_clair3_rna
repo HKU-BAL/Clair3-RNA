@@ -477,7 +477,7 @@ def check_args(args):
                                                                                       args.bam_fn + '.crai')))
 
     if args.pileup_model_path is None:
-        args.pileup_model_path = os.path.join(args.conda_prefix, 'bin', 'clair3_rna_models', args.platform, 'pileup')
+        args.pileup_model_path = os.path.join(args.conda_prefix, 'bin', 'clair3_rna_models', args.platform, 'variables')
 
     output = file_path_from(file_name=args.pileup_model_path + '.index', exit_on_not_found=True, is_directory=False, allow_none=False)
 
@@ -512,8 +512,8 @@ def check_args(args):
     if args.chunk_size is None:
         args.chunk_size = param.CHUNK_SIZE
 
-    if args.platform not in {'ont_r9_cdna', 'ont_r9_drna', 'hifi_sequel2', 'hifi_mas',}:
-        logging(log_error('[ERROR] Invalid platform input, optional: {ont_r9_cdna, ont_r9_drna, hifi_sequel2, hifi_mas}'))
+    if args.platform not in {'ont_r9_guppy_cdna', 'ont_r9_guppy_drna', 'hifi_sequel2', 'hifi_mas',}:
+        logging(log_error('[ERROR] Invalid platform input, optional: {ont_r9_guppy_cdna, ont_r9_guppy_drna, hifi_sequel2, hifi_mas}'))
 
     if args.qual is None:
         args.qual = param.qual_cut_off
@@ -765,7 +765,7 @@ def param_parser():
         required=True,
         type=str,
         default=None,
-        help="Select the sequencing platform of the input. Possible options: {ont_r9_cdna, ont_r9_drna, hifi_sequel2, hifi_mas}."
+        help="Select the sequencing platform of the input. Possible options: {ont_r9_guppy_cdna, ont_r9_guppy_drna, hifi_sequel2, hifi_mas}."
     )
 
     optional_params = parser.add_argument_group('Optional parameters')
