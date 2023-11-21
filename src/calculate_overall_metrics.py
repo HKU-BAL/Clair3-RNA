@@ -293,10 +293,10 @@ def Cal(args):
         truth_indel_tp = truth_indel_tp + 1 if is_truth_indel_tp else truth_indel_tp
 
         if is_query_snp_fp:
-            qual = input_variant_dict[key].qual if key in input_variant_dict else None
+            qual = input_variant_dict[key].qual if key in input_variant_dict else 0.0
             snp_query_fp_qual_dict[key] = float(qual)
         if is_query_snp_tp:
-            qual = input_variant_dict[key].qual if key in input_variant_dict else None
+            qual = input_variant_dict[key].qual if key in input_variant_dict else 0.0
             snp_query_tp_qual_dict[key] = float(qual)
         if is_truth_snp_fn:
             snp_truth_fn_set.add(key)

@@ -517,6 +517,9 @@ def check_args(args):
 
     if args.qual is None:
         args.qual = param.qual_cut_off
+        for k, v in param.min_thred_qual.items():
+            if args.platform.startswith(k):
+                args.qual = v
 
     legal_range_from(param_name="threads", x=args.threads, min_num=1, exit_out_of_range=True)
     legal_range_from(param_name="qual", x=args.qual, min_num=0, exit_out_of_range=True)
@@ -682,7 +685,9 @@ def calling_workflow(args):
     p_mv_command += ' --tag_variant_using_readiportal True' if args.tag_variant_using_readiportal is not None else ""
     p_mv_command += ' --readiportal_source_fn {}'.format(args.readiportal_source_fn) if args.readiportal_source_fn is not None else ""
     p_mv_command += ' --db_filter_tag {}'.format(args.db_filter_tag) if args.db_filter_tag is not None else ""
+    p_mv_command += ' --output_no_tagging_fn ' + os.path.join(args.output_dir, args.output_prefix +'_no_tagging.vcf' )
     p_mv_command += ' --compress_vcf True '
+    p_mv_command += ' --show_ref True ' if args.print_ref_calls else ""
     p_mv_command += ' --contigs_fn ' + os.path.join(args.output_dir, 'tmp', 'CONTIGS')
     commands_list += [p_mv_command]
 

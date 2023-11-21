@@ -134,6 +134,8 @@ def sort_vcf_from(args):
     contigs_fn = args.contigs_fn
     compress_vcf = args.compress_vcf
     QUAL = args.qual
+    output_no_tagging_fn = args.output_no_tagging_fn
+    show_ref = args.show_ref
 
     print("[INFO] Sorting VCFs...")
 
@@ -203,7 +205,6 @@ def sort_vcf_from(args):
 
             unzip_process.stdout.close()
             unzip_process.wait()
-
     row_count = 0
     header = []
     no_vcf_output = True
@@ -212,6 +213,9 @@ def sort_vcf_from(args):
     tag_by_rediportal_num = 0
 
     output = open(output_fn, 'w')
+    if args.tag_variant_using_readiportal:
+        output_no_tagging = open(output_no_tagging_fn, 'w')
+
     for contig in contigs_order_list:
         contig_dict = defaultdict(str)
         contig_vcf_fns = [fn for fn in all_files if contig in fn]
@@ -237,6 +241,8 @@ def sort_vcf_from(args):
                 ref_base, alt_base = columns[3], columns[4]
                 is_reference = (alt_base == "." or ref_base == alt_base)
 
+                if not show_ref and is_reference:
+                    continue
                 if not is_reference:
                     row = MarkLowQual(row, QUAL, qual)
                 key = (ctg_name, int(pos))
@@ -250,11 +256,17 @@ def sort_vcf_from(args):
         if need_write_header and len(header):
             output.write(''.join(header))
             need_write_header = False
+            if args.tag_variant_using_readiportal:
+                output_no_tagging.write(''.join(header))
         all_pos = sorted(contig_dict.keys())
         for pos in all_pos:
             output.write(contig_dict[pos])
+            if args.tag_variant_using_readiportal:
+                output_no_tagging.write(contig_dict[pos].replace('RNAEditing', 'PASS'))
 
     output.close()
+    if args.tag_variant_using_readiportal:
+        output_no_tagging.close()
 
     if row_count == 0:
         print(log_warning("[WARNING] No vcf file found, output empty vcf file"))
@@ -272,9 +284,11 @@ def sort_vcf_from(args):
 
     if compress_vcf:
         compress_index_vcf(output_fn)
+        if args.tag_variant_using_readiportal:
+            compress_index_vcf(output_no_tagging_fn)
 
     if args.tag_variant_using_readiportal:
-        print('[INFO] Total variants tagged by REDIportal dataset: {}'.format(tag_by_rediportal_num))
+        print('[INFO] Dataset size:{}, total variants tagged by REDIportal dataset: {}'.format(len(rediportal_variant_dict), tag_by_rediportal_num))
 
     print("[INFO] Finished VCF sorting!")
 
@@ -306,11 +320,17 @@ def main():
     parser.add_argument('--compress_vcf', type=str2bool, default=False,
                         help="Compress and index the output VCF")
 
+    parser.add_argument('--show_ref', type=str2bool, default=False,
+                        help="Compress and index the output VCF")
+
     parser.add_argument('--cmd_fncmd_fn', type=str_none, default=None,
                         help="If defined, added command line into VCF header")
 
     parser.add_argument('--qual', type=int, default=2,
                         help="If set, variants with >$qual will be marked 'PASS', or 'LowQual' otherwise, optional")
+
+    parser.add_argument('--output_no_tagging_fn', type=str, default=None,
+                        help="Output VCF filename without tagging")
 
     parser.add_argument('--tag_variant_using_readiportal', type=str2bool, default=None,
                         help="If defined, added command line into VCF header")

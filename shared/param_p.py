@@ -61,7 +61,8 @@ model_name_platform_dict = {
     'r941_prom_sup_g5014': 'ont_r9_guppy'
 }
 
-min_thred_qual = {'ont': 8, 'ont_r10': 8, 'ont_r9': 8, 'ilmn': 2, 'hifi': 2, 'hifi_sequel2': 2, 'hifi_revio': 2}
+min_thred_qual = {'ont': 8,
+                  'hifi': 2}
 snp_min_af = 0.08
 indel_min_af = 0.15
 min_coverage = 4
