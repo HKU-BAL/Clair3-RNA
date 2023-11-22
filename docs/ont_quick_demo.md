@@ -123,7 +123,7 @@ pypy3 /opt/bin/clair3_rna.py calculate_overall_metrics \
 |   Type    | TRUTH.TP | TRUTH.FN | QUERY.FP | METRIC.Recall | METRIC.Precision | METRIC.F1-Score |
 | :-------: | :------: | :------: | :------: | :-----------: | :--------------: | :-------------: |
 | **INDEL** |    1     |    0     |    0     |      1.0      |       1.0        |       1.0       |
-|  **SNP**  |    20    |    2     |    1     |     0.91      |       0.95       |      0.93       |
+|  **SNP**  |    16    |    6     |    0     |     0.72      |       1.0        |      0.84       |
 
 **Run all commands above:**
 
