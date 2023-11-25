@@ -4,17 +4,17 @@
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 Contact: Ruibang Luo, Zhenxian Zheng  
-Email: rbluo@cs.hku.hk, zxzheng@cs.hku.hk  
+Email: {rbluo,zxzheng}@cs.hku.hk
 
 ----
 
 ## Introduction
 
-Clair3-RNA is a small variant caller designed specifically for RNA long-reads. Clair3-RNA was trained the model using GIAB RNA sequencing(RNA-seq) data. Clair3-RNA currently supports ONT R9 chemistry with complementary DNA sequencing (CDNA) and direct RNA sequencing (DRNA), as well as the PacBio Sequel platform and PacBio MAS-Seq platform.
+Clair3-RNA is a small variant caller for RNA long-read data. Clair3-RNA supports ONT R9 chemistry with complementary DNA sequencing (cDNA) and direct RNA sequencing (dRNA). It also support PacBio Sequel and PacBio MAS-Seq RNA sequencing data.
 
-For germline variant calling using DNA sequencing data, please try [Clair3](https://github.com/HKU-BAL/Clair3). 
+For germline small variant calling with DNA long-read, please use [Clair3](https://github.com/HKU-BAL/Clair3). 
 
-For somatic variant calling using paired tumor/normal DNA sequencing data, please try [ClairS](https://github.com/HKU-BAL/ClairS).
+For somatic small variant calling with DNA long-read, please try [ClairS](https://github.com/HKU-BAL/ClairS).
 
 ----
 
@@ -54,9 +54,9 @@ Check [Usage](#Usage) for more options.
 
 ## Pre-trained Models
 
-Clair-RNA trained on GIAB RNA sequencing data. All models were trained with chr20 excluded (including only chr1-19, 21, 22). 
+Clair-RNA was trained using GIAB RNA sequencing data. All models were trained with chr20 excluded (including only chr1-19, 21, 22). 
 
-|         Platform         |        Chemistry /Instruments        | Basecaller | Option (`-p/--platform`) |   Reference   | Training samples |
+|         Platform         |        Chemistry/Instruments        | Basecaller | Option (`-p/--platform`) |   Reference   | Training samples |
 | :----------------------: | :----------------------------------: | :--------: | :----------------------: | :-----------: | ---------------- |
 |           ONT            |    R9.4.1, complementary DNA sequencing     |   Guppy    |   `ont_r9_guppy_cdna`    | GRCh38_no_alt | HG002            |
 |           ONT            | R9.4.1, direct RNA sequencing |   Guppy    |   `ont_r9_guppy_drna`    | GRCh38_no_alt | HG002            |
@@ -246,11 +246,11 @@ docker run -it hkubal/clair3-rna:latest /opt/bin/clair3_rna --help
   --readiportal_source_fn READIPORTAL_SOURCE_FN
                         The source file of readiportal dataset, support GRCh38 and GRCh37 reference source.
   --db_filter_tag DB_FILTER_TAG
-                        Database filter tag in readiportal dataset, split by ":" for multiple tags. Default: "A,D:A,R:A,R,D"
+                        Use only editing sites with these tags in the readiportal dataset, split by ":" for multiple tags. Default: using sites supported by two or more sources - "A,D:A,R:A,R,D"
   --use_grch38_source_fn
-                        Use REDIportal GRCh38 source file for tagging RNA editing site.
+                        Use the REDIportal GRCh38 source file.
   --use_grch37_source_fn
-                        Use REDIportal GRCh37 source file for tagging RNA editing site.
+                        Use the REDIportal GRCh37 source file.
 ```
 
 #### Call variants in one or mutiple chromosomes using the `-C/--ctg_name` parameter
@@ -283,5 +283,5 @@ We highly recommended using BED file to define multiple regions of interest like
 
 #### Tag RNA editing site using REDIportal dataset
 
-RNA undergoes editing by ADAR (adenosine deaminases acting on RNA), resulting in Adenosine-to-inosine (A-to-I) changes. These A-to-I changes can be observed in RNA-seq datasets as A-to-G and T-to-C changes, which do not represent genuine RNA variants. To address this, we provide users with the option to utilize external datasets such as [REDIportal](http://srv00.recas.ba.infn.it/atlas/) to annotate RNA editing sites. In the VCF output, the RNA editing sites reported in REDIportal V2.0 (visit in 2023.10.30) will be tagged , these sites will be marked as `RNAEditing` instead of `PASS`  in the `FILTER` column when the `--tag_variant_using_readiportal` option is enabled.
+RNA undergoes editing by ADAR (adenosine deaminases acting on RNA), resulting in Adenosine-to-inosine (A-to-I) changes. These A-to-I changes can be observed in RNA-seq datasets as A-to-G and T-to-C changes, which do not represent genuine RNA variants. To address this, we provide users with the option to utilize external datasets such as [REDIportal](http://srv00.recas.ba.infn.it/atlas/) to annotate RNA editing sites. In Clair3-RNA's VCF output, variants that are also RNA editing sites reported in REDIportal can be tagged. These sites will be marked as `RNAEditing` instead of `PASS` in the `FILTER` column when the `--tag_variant_using_readiportal` option is enabled.
 
