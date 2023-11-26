@@ -63,7 +63,7 @@ def mark_rediportal(row, item):
     ref_base, alt_base = columns[3], columns[4]
     if red_ref_base == ref_base and red_alt_base == alt_base:
         columns[6] = "RNAEditing"
-        # columns[7] = str(db_filter)
+        columns[7] = str(db_filter.replace(',', ':'))
         tag_by_rediportal = True
 
     return '\t'.join(columns), tag_by_rediportal
@@ -176,7 +176,7 @@ def sort_vcf_from(args):
     rediportal_variant_dict = defaultdict()
     if args.tag_variant_using_readiportal:
         print("[INFO] Reading readiportal source file ...")
-        db_filter_tag = set(args.db_filter_tag.split(':')) if args.db_filter_tag is not None else None
+        readiportal_database_filter_tag = set(args.readiportal_database_filter_tag.split(':')) if args.readiportal_database_filter_tag is not None else None
 
         #allow gzip format
         if args.readiportal_source_fn is None or not os.path.exists(args.readiportal_source_fn):
@@ -197,7 +197,7 @@ def sort_vcf_from(args):
                     continue
                 db_filter = columns[5]
 
-                if db_filter_tag is not None and db_filter not in db_filter_tag:
+                if readiportal_database_filter_tag is not None and db_filter not in readiportal_database_filter_tag:
                     continue
 
                 ref_base, alt_base = columns[2:4]
@@ -323,7 +323,7 @@ def main():
     parser.add_argument('--show_ref', type=str2bool, default=False,
                         help="Compress and index the output VCF")
 
-    parser.add_argument('--cmd_fncmd_fn', type=str_none, default=None,
+    parser.add_argument('--cmd_fn', type=str_none, default=None,
                         help="If defined, added command line into VCF header")
 
     parser.add_argument('--qual', type=int, default=2,
@@ -338,7 +338,7 @@ def main():
     parser.add_argument('--readiportal_source_fn', type=str_none, default=None,
                         help="If defined, added command line into VCF header")
 
-    parser.add_argument('--db_filter_tag', type=str, default=None,
+    parser.add_argument('--readiportal_database_filter_tag', type=str, default=None,
                         help="If defined, added command line into VCF header")
 
     args = parser.parse_args()

@@ -484,18 +484,22 @@ def check_args(args):
     if args.tag_variant_using_readiportal:
 
         if args.readiportal_source_fn is None:
-            if not args.use_grch38_source_fn and not args.use_grch37_source_fn:
+            if not args.readiportal_reference_genome_version:
                 print('[INFO] Use GRCh38 as reference file to tag RNA editing sites')
-                args.use_grch38_source_fn = True
+                args.readiportal_reference_genome_version = 'grch38'
 
-            file_name = 'TABLE1_hg38.txt' if args.use_grch38_source_fn else "TABLE1_hg19.txt"
+            if args.readiportal_reference_genome_version not in {'grch38', 'grch37'}:
+                logging(log_error(
+                    '[ERROR] Invalid readiportal reference genome_version, optional: {grch38, grch37}'))
+
+            file_name = 'TABLE1_hg38.txt.gz' if args.readiportal_reference_genome_version == "grch38" else "TABLE1_hg19.txt.gz"
             args.readiportal_source_fn = os.path.join(args.conda_prefix, 'bin', 'clair3_rna_models', file_name)
         else:
             print('[INFO] Own REDIportal source file provided, use for tag RNA editing sites')
         args.readiportal_source_fn = file_path_from(file_name=args.readiportal_source_fn, exit_on_not_found=True,
                                                 is_directory=False, allow_none=False)
-        if args.db_filter_tag is None:
-            args.db_filter_tag = param.db_filter_tag
+        if args.readiportal_database_filter_tag is None:
+            args.readiportal_database_filter_tag = param.readiportal_database_filter_tag
 
     if args.snp_min_af is None:
         args.snp_min_af = param.snp_min_af
@@ -565,9 +569,8 @@ def print_args(args):
     logging("[INFO] TAG VARIANT USING READIPORTAL DATASET: {}".format(args.tag_variant_using_readiportal))
     if args.tag_variant_using_readiportal:
         logging("[INFO] READIPORTAL DATASET SOURCE FILE: {}".format(args.readiportal_source_fn))
-        logging("[INFO] READIPORTAL DATASET FILTER TAG: {}".format(args.db_filter_tag))
-        logging("[INFO] USE GRCH38 AS SOURCE FILE: {}".format(args.use_grch38_source_fn))
-        logging("[INFO] USE GRCH37 AS SOURCE FILE: {}".format(args.use_grch37_source_fn))
+        logging("[INFO] READIPORTAL DATASET FILTER TAG: {}".format(args.readiportal_database_filter_tag))
+        logging("[INFO] READIPORTAL REFERENCE GENOME VERSION: {}".format(args.readiportal_reference_genome_version))
     logging("[INFO] ENABLE DRY RUN: {}".format(args.dry_run))
     logging("[INFO] ENABLE PRINTING REFERENCE CALLS: {}".format(args.print_ref_calls))
     logging("[INFO] ENABLE INCLUDING ALL CTGS FOR CALLING: {}".format(args.include_all_ctgs))
@@ -617,9 +620,8 @@ def print_command_line(args):
         cmdline += '--min_mq {}'.format(args.min_mq) if args.min_mq is not None else ""
         cmdline += '--tag_variant_using_readiportal ' if args.tag_variant_using_readiportal is not None else ""
         cmdline += '--readiportal_source_fn {} '.format(args.readiportal_source_fn) if args.readiportal_source_fn is not None else ""
-        cmdline += '--db_filter_tag {} '.format(args.db_filter_tag) if args.db_filter_tag is not None else ""
-        cmdline += '--use_grch38_source_fn ' if args.use_grch38_source_fn is not None else ""
-        cmdline += '--use_grch37_source_fn ' if args.use_grch37_source_fn is not None else ""
+        cmdline += '--readiportal_database_filter_tag {} '.format(args.readiportal_database_filter_tag) if args.readiportal_database_filter_tag is not None else ""
+        cmdline += '--readiportal_reference_genome_version {} '.format(args.readiportal_reference_genome_version) if args.readiportal_reference_genome_version is not None else ""
 
         #control command
         cmdline += '--use_gpu ' if args.use_gpu else ""
@@ -684,7 +686,7 @@ def calling_workflow(args):
     p_mv_command += ' --qual ' + str(args.qual) if args.qual is not None else ""
     p_mv_command += ' --tag_variant_using_readiportal True' if args.tag_variant_using_readiportal is not None else ""
     p_mv_command += ' --readiportal_source_fn {}'.format(args.readiportal_source_fn) if args.readiportal_source_fn is not None else ""
-    p_mv_command += ' --db_filter_tag {}'.format(args.db_filter_tag) if args.db_filter_tag is not None else ""
+    p_mv_command += ' --readiportal_database_filter_tag {}'.format(args.readiportal_database_filter_tag) if args.readiportal_database_filter_tag is not None else ""
     p_mv_command += ' --output_no_tagging_fn ' + os.path.join(args.output_dir, args.output_prefix +'_no_tagging.vcf' )
     p_mv_command += ' --compress_vcf True '
     p_mv_command += ' --show_ref True ' if args.print_ref_calls else ""
@@ -926,7 +928,7 @@ def param_parser():
         "--min_mq",
         type=int,
         default=None,
-        help="Minimal mapping quality required for a variant to be called. Default: 5."
+        help="Minimal mapping quality required for an alignment to be considered. Default: 5."
     )
 
     #
@@ -934,40 +936,33 @@ def param_parser():
     optional_params.add_argument(
         "--tag_variant_using_readiportal",
         action='store_true',
-        help='Tagging variants uisng REDIportal dataset, If set, variants in the readiportal dataset will be marked as "RNAEditing", default: disable.'
+        help='Tag variants uisng REDIportal dataset, If set, variants in the readiportal dataset will be marked as "RNAEditing". Default: disable.'
     )
 
+    optional_params.add_argument(
+        "--readiportal_database_filter_tag",
+        type=str,
+        default=None,
+        help='Use only editing sites with these tags in the readiportal dataset, split by ":" for multiple tags. Default: using sites supported by two or more sources - "A,D:A,R:A,R,D".'
+    )
+
+    optional_params.add_argument(
+        "--readiportal_reference_genome_version",
+        type=str,
+        default=None,
+        help='Select the reference genome version in the readiportal dataset. Possible options: {grch38, grch37}. Default: "grch38".'
+    )
+
+    #SUPPRESS options
+    ## The source file of readiportal dataset, support GRCh38 and GRCh37 reference source.
     optional_params.add_argument(
         "--readiportal_source_fn",
         type=str,
         default=None,
-        help='The source file of readiportal dataset, support GRCh38 and GRCh37 reference source.'
+        help=SUPPRESS
     )
 
-    optional_params.add_argument(
-        "--db_filter_tag",
-        type=str,
-        default=None,
-        help='Database filter tag in readiportal dataset, split by ":" for multiple tags. Default: "A,D:A,R:A,R,D"'
-    )
-
-    db_group = optional_params.add_mutually_exclusive_group(required=False)
-
-    db_group.add_argument(
-        "--use_grch38_source_fn",
-        action='store_true',
-        help="Use REDIportal GRCh38 source file for tagging RNA editing site."
-    )
-
-    db_group.add_argument(
-        "--use_grch37_source_fn",
-        action='store_true',
-        default=None,
-        help="Use REDIportal GRCh37 source file for tagging RNA editing site."
-    )
-
-    #
-    # Disable C implement with cffi for pileup and full-alignment create tensor, default: enable.'
+    ## Disable C implement with cffi for pileup and full-alignment create tensor, default: enable.'
     optional_params.add_argument(
         "--disable_c_impl",
         action='store_true',

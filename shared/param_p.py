@@ -68,4 +68,4 @@ indel_min_af = 0.15
 min_coverage = 4
 CHUNK_SIZE = 5000000
 qual_cut_off = 2
-db_filter_tag = "A,D:A,R:A,R,D"
+readiportal_database_filter_tag = "A,D:A,R:A,R,D"
