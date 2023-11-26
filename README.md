@@ -122,8 +122,6 @@ singularity exec \
 
 ### Option 3. Build an anaconda virtual environment
 
-Check [here]() to install the tools step by step.
-
 **Anaconda install**:
 
 Please install anaconda using the official [guide](https://docs.anaconda.com/anaconda/install) or using the commands below:
@@ -149,7 +147,7 @@ cd Clair-RNA
 # download pre-trained models
 echo ${CONDA_PREFIX}
 mkdir -p ${CONDA_PREFIX}/bin/clair3_rna_models
-wget http://www.bio8.cs.hku.hk/clairs/models/clair3_rna_models.tar.gz
+wget http://www.bio8.cs.hku.hk/clair3_rna/models/clair3_rna_models.tar.gz
 tar -zxvf clair3_rna_models.tar.gz -C ${CONDA_PREFIX}/bin/clair3_rna_models/
 
 ./run_clair3_rna --help
@@ -240,17 +238,13 @@ docker run -it hkubal/clair3-rna:latest /opt/bin/clair3_rna --help
   --pypy PYPY           Absolute path of pypy3, pypy3 >= 3.6 is required.
   --samtools SAMTOOLS   Absolute path of samtools, samtools version >= 1.10 is required.
   --parallel PARALLEL   Absolute path of parallel, parallel >= 20191122 is required.
-  --min_mq MIN_MQ       Minimal mapping quality required for a variant to be called. Default: 5.
+  --min_mq MIN_MQ       Minimal mapping quality required for an alignment to be considered. Default: 5.
   --tag_variant_using_readiportal
-                        Tagging variants uisng REDIportal dataset, If set, variants in the readiportal dataset will be marked as "RNAEditing", default: disable.
-  --readiportal_source_fn READIPORTAL_SOURCE_FN
-                        The source file of readiportal dataset, support GRCh38 and GRCh37 reference source.
-  --db_filter_tag DB_FILTER_TAG
-                        Use only editing sites with these tags in the readiportal dataset, split by ":" for multiple tags. Default: using sites supported by two or more sources - "A,D:A,R:A,R,D"
-  --use_grch38_source_fn
-                        Use the REDIportal GRCh38 source file.
-  --use_grch37_source_fn
-                        Use the REDIportal GRCh37 source file.
+                        Tag variants uisng REDIportal dataset, If set, variants in the readiportal dataset will be marked as "RNAEditing". Default: disable.
+  --readiportal_database_filter_tag READIPORTAL_DATABASE_FILTER_TAG
+                        Use only editing sites with these tags in the readiportal dataset, split by ":" for multiple tags. Default: using sites supported by two or more sources - "A,D:A,R:A,R,D".
+  --readiportal_reference_genome_version READIPORTAL_REFERENCE_GENOME_VERSION
+                        Select the reference genome version in the readiportal dataset. Possible options: {grch38, grch37}. Default: "grch38".
 ```
 
 #### Call variants in one or mutiple chromosomes using the `-C/--ctg_name` parameter
