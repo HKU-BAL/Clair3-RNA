@@ -41,7 +41,8 @@ hkubal/clair3-rna:latest \
     --output_dir ${OUTPUT_DIR} \
     --platform ${PLATFORM} \
     --threads ${THREADS} \
-    --region chr1:816000-828000
+    --region chr1:816000-828000 \
+    --tag_variant_using_readiportal
 
 # Acquire intersected GIAB high-confidence BED with RNA coverage >=4
 docker run -it \

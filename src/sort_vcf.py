@@ -63,7 +63,6 @@ def mark_rediportal(row, item):
     ref_base, alt_base = columns[3], columns[4]
     if red_ref_base == ref_base and red_alt_base == alt_base:
         columns[6] = "RNAEditing"
-        columns[7] = str(db_filter.replace(',', ':'))
         tag_by_rediportal = True
 
     return '\t'.join(columns), tag_by_rediportal
