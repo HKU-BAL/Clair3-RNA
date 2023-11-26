@@ -1,5 +1,5 @@
 
-# Clair3-RNA
+# Clair3-RNA - long-read short variant caller for RNA sequencing data
 
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
@@ -223,6 +223,12 @@ docker run -it hkubal/clair3-rna:latest /opt/bin/clair3_rna --help
                         Minimum Indel AF required for a candidate variant to be called. Default: ont:0.15,hifi:0.08.
   --min_coverage MIN_COVERAGE
                         Minimal coverage required for a variant to be called. Default: 4.
+  --tag_variant_using_readiportal
+                        Tag variants uisng REDIportal dataset, If set, called variants that are also in the readiportal dataset will be marked as "RNAEditing". Default: disable.
+  --readiportal_database_filter_tag READIPORTAL_DATABASE_FILTER_TAG
+                        Use only editing sites with these tags in the readiportal dataset, split by ":" for multiple tags. Default: using sites supported by two or more sources - "A,D:A,R:A,R,D".
+  --readiportal_reference_genome_version READIPORTAL_REFERENCE_GENOME_VERSION
+                        Select the reference genome version in the readiportal dataset. Possible options: {grch38, grch37}. Default: "grch38".
   --chunk_size CHUNK_SIZE
                         The size of each chuck for parallel processing. Default: 5000000.
   -s SAMPLE_NAME, --sample_name SAMPLE_NAME
@@ -239,12 +245,6 @@ docker run -it hkubal/clair3-rna:latest /opt/bin/clair3_rna --help
   --samtools SAMTOOLS   Absolute path of samtools, samtools version >= 1.10 is required.
   --parallel PARALLEL   Absolute path of parallel, parallel >= 20191122 is required.
   --min_mq MIN_MQ       Minimal mapping quality required for an alignment to be considered. Default: 5.
-  --tag_variant_using_readiportal
-                        Tag variants uisng REDIportal dataset, If set, variants in the readiportal dataset will be marked as "RNAEditing". Default: disable.
-  --readiportal_database_filter_tag READIPORTAL_DATABASE_FILTER_TAG
-                        Use only editing sites with these tags in the readiportal dataset, split by ":" for multiple tags. Default: using sites supported by two or more sources - "A,D:A,R:A,R,D".
-  --readiportal_reference_genome_version READIPORTAL_REFERENCE_GENOME_VERSION
-                        Select the reference genome version in the readiportal dataset. Possible options: {grch38, grch37}. Default: "grch38".
 ```
 
 #### Call variants in one or mutiple chromosomes using the `-C/--ctg_name` parameter
