@@ -1,5 +1,5 @@
 
-# Clair3-RNA - long-read short variant caller for RNA sequencing data
+# Clair3-RNA - long-read small variant caller for RNA sequencing data
 
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
