@@ -1,3 +1,6 @@
+<div align="center">
+    <img src="images/icon.png" width = "200" alt="Clair3-RNA">
+</div>
 
 # Clair3-RNA - long-read small variant caller for RNA sequencing data
 
