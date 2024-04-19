@@ -13,11 +13,15 @@ Email: {rbluo,zxzheng}@cs.hku.hk
 
 ## Introduction
 
-Clair3-RNA is a small variant caller for RNA long-read data. Clair3-RNA supports ONT R9 chemistry with complementary DNA sequencing (cDNA) and direct RNA sequencing (dRNA). It also support PacBio Sequel and PacBio MAS-Seq RNA sequencing data.
+Clair3-RNA is a small variant caller for RNA long-read data. Clair3-RNA supports ONT R9 chemistry with complementary DNA sequencing (cDNA) and direct RNA sequencing (dRNA). It also supports PacBio Sequel and PacBio MAS-Seq RNA sequencing data.
 
-For germline small variant calling with DNA long-read, please use [Clair3](https://github.com/HKU-BAL/Clair3). 
+At the current stage, Clair3-RNA is a side project of the lab. It runs, but its design is not very different from Clair3, thus not optimized for the characteristics of transcriptome data, such as uneven and low coverage. Later, we will put more effort into this project, and it is likely that we will give up most of the current designs.
 
-For somatic small variant calling with DNA long-read, please try [ClairS](https://github.com/HKU-BAL/ClairS).
+For germline small variant calling, please use [Clair3](https://github.com/HKU-BAL/Clair3). 
+
+For somatic small variant calling using a tumor-normal pair, please try [ClairS](https://github.com/HKU-BAL/ClairS).
+
+For somatic small variant calling using tumor sample only, please try [ClairS-TO](https://github.com/HKU-BAL/ClairS-TO).
 
 ----
 
