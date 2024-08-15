@@ -618,7 +618,7 @@ def print_command_line(args):
         cmdline += '--samtools {} '.format(args.samtools) if args.samtools != "samtools" else ""
         cmdline += '--parallel {} '.format(args.parallel) if args.parallel != "parallel" else ""
         cmdline += '--min_mq {}'.format(args.min_mq) if args.min_mq is not None else ""
-        cmdline += '--tag_variant_using_readiportal ' if args.tag_variant_using_readiportal is not None else ""
+        cmdline += '--tag_variant_using_readiportal ' if args.tag_variant_using_readiportal else ""
         cmdline += '--readiportal_source_fn {} '.format(args.readiportal_source_fn) if args.readiportal_source_fn is not None else ""
         cmdline += '--readiportal_database_filter_tag {} '.format(args.readiportal_database_filter_tag) if args.readiportal_database_filter_tag is not None else ""
         cmdline += '--readiportal_reference_genome_version {} '.format(args.readiportal_reference_genome_version) if args.readiportal_reference_genome_version is not None else ""
@@ -684,7 +684,7 @@ def calling_workflow(args):
     p_mv_command += ' --cmd_fn ' + os.path.join(args.output_dir, 'tmp', 'CMD')
     p_mv_command += ' --ref_fn ' + args.ref_fn
     p_mv_command += ' --qual ' + str(args.qual) if args.qual is not None else ""
-    p_mv_command += ' --tag_variant_using_readiportal True' if args.tag_variant_using_readiportal is not None else ""
+    p_mv_command += ' --tag_variant_using_readiportal True' if args.tag_variant_using_readiportal else ""
     p_mv_command += ' --readiportal_source_fn {}'.format(args.readiportal_source_fn) if args.readiportal_source_fn is not None else ""
     p_mv_command += ' --readiportal_database_filter_tag {}'.format(args.readiportal_database_filter_tag) if args.readiportal_database_filter_tag is not None else ""
     p_mv_command += ' --output_no_tagging_fn ' + os.path.join(args.output_dir, args.output_prefix +'_no_tagging.vcf' )
@@ -1075,6 +1075,8 @@ def main():
 
     runtime = time() - call_start_time
     logging("[INFO] Total time elapsed: %im%.2fs\n" % (int(runtime/60), int(runtime % 60)))
+    if args.tag_variant_using_readiportal:
+        logging("[INFO] Finish calling, output file without readiportal dataset tagging: {}/{}_no_tagging.vcf.gz\n".format(args.output_dir, args.output_prefix))
     logging("[INFO] Finish calling, output file: {}/{}.vcf.gz\n".format(args.output_dir, args.output_prefix))
 
     if args.tee is not None:
