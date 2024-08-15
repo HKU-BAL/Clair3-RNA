@@ -1,5 +1,5 @@
 # Parameters
-PLATFORM="ont_r9_guppy_cdna"
+PLATFORM="ont_guppy_drna002"
 THREADS=4
 INPUT_DIR="${HOME}/ont_quick_demo"
 INPUT_DIR="/autofs/bal33/zxzheng/rna/ont_quick_demo"
