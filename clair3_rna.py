@@ -47,7 +47,8 @@ data_preprocess_folder = [
     'create_tensor_pileup',
     'sort_vcf',
     "compare_vcf",
-    'calculate_overall_metrics'
+    'calculate_overall_metrics',
+    'get_truth_from_af',
 ]
 
 

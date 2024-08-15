@@ -1,6 +1,6 @@
 #Clair3-RNA pileup parameters
 caller_name=REPO_NAME="Clair3-RNA"
-version = "0.0.1"
+version = "0.0.2"
 import re
 from itertools import accumulate
 
@@ -55,14 +55,15 @@ OPERATION_SEED = None
 RANDOM_SEED = None
 
 model_name_platform_dict = {
-    'r1041_e82_400bps_sup_v420': 'ont_r10_dorado_5khz',
-    'r1041_e82_400bps_sup_v410': 'ont_r10_dorado_4khz',
-    'r104_e81_sup_g5015': 'ont_r10_guppy',
-    'r941_prom_sup_g5014': 'ont_r9_guppy'
+    'ont_r9_guppy_cdna': 'ont_guppy_cdna',
+    'ont_r9_guppy_drna': 'ont_guppy_drna002',
+    'hifi_sequel2': 'hifi_sequel2_pbmm2',
+    'hifi_mas': 'hifi_mas_pbmm2'
 }
 
 min_thred_qual = {'ont': 8,
                   'hifi': 2}
+
 snp_min_af = 0.08
 indel_min_af = 0.15
 min_coverage = 4
