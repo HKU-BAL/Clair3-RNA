@@ -13,9 +13,7 @@ Email: {rbluo,zxzheng}@cs.hku.hk
 
 ## Introduction
 
-Clair3-RNA is a small variant caller for RNA long-read data. Clair3-RNA supports ONT R9 chemistry with complementary DNA sequencing (cDNA) and direct RNA sequencing (dRNA). It also supports PacBio Sequel and PacBio MAS-Seq RNA sequencing data.
-
-At the current stage, Clair3-RNA is a side project of the lab. It runs, but its design is not very different from Clair3, thus not optimized for the characteristics of transcriptome data, such as uneven and low coverage. Later, we will put more effort into this project, and it is likely that we will give up most of the current designs.
+Clair3-RNA is a small variant caller for RNA long-read data. Clair3-RNA supports ONT complementary DNA sequencing (cDNA) and direct RNA sequencing (dRNA). dRNA sequencing support the ONT latest [SQK-RNA004 kit](https://community.nanoporetech.com/docs/prepare/library_prep_protocols/direct-rna-sequencing-sqk-rna004/v/drs_9195_v4_revd_20sep2023) data for variant calling. Clair3-RNA also supports PacBio Sequel and PacBio MAS-Seq RNA sequencing data.
 
 For germline small variant calling, please use [Clair3](https://github.com/HKU-BAL/Clair3). 
 
@@ -39,6 +37,13 @@ For somatic small variant calling using tumor sample only, please try [ClairS-TO
 
 ----
 
+## Latest Updates
+*v0.1.0 (Aug 15, 2024)* : 1. Added a new ONT dRNA004 direct RNA sequencing model (`ont_dorado_drna004`) for SQK-RNA004 kit. 2. Added new PacBio Sequel (`hifi_sequel2_minimap2`) and Revio (`hifi_mas_minimap2`) model to support minimap2 alignment. 3. Enhance model training techniques to boost performance by incorporating strategies such as managing low-coverage sites, verifying variant zygosity, filtering RNA editing sites, etc.  4. Renamed all ONT and PacBio model names, check [here](https://github.com/HKU-BAL/Clair3-RNA?tab=readme-ov-file#pre-trained-models) for more details.
+
+*v0.0.1 (Nov 27, 2023)*: Initial release for early access.
+
+---
+
 ## Quick Demo
 
 - Oxford Nanopore (ONT) data as input, see [ONT Quick Demo](docs/ont_quick_demo.md).
@@ -49,7 +54,7 @@ For somatic small variant calling using tumor sample only, please try [ClairS-TO
 After following [installation](#installation), you can run Clair3-RNA with one command:
 
 ```bash
-./run_clair3_rna -B input.bam -R ref.fa -o output -t 8 -p ont_r9_cdna
+./run_clair3_rna -B input.bam -R ref.fa -o output -t 8 -p ont_dorado_drna004
 ## Final output file: output/output.vcf.gz
 ```
 
@@ -63,12 +68,13 @@ Check [Usage](#Usage) for more options.
 
 Clair-RNA was trained using GIAB RNA sequencing data. All models were trained with chr20 excluded (including only chr1-19, 21, 22). 
 
-|         Platform         |        Chemistry/Instruments        | Basecaller | Option (`-p/--platform`) |   Reference   | Training samples |
-| :----------------------: | :----------------------------------: | :--------: | :----------------------: | :-----------: | ---------------- |
-|           ONT            |    R9.4.1, complementary DNA sequencing     |   Guppy    |   `ont_r9_guppy_cdna`    | GRCh38_no_alt | HG002            |
-|           ONT            | R9.4.1, direct RNA sequencing |   Guppy    |   `ont_r9_guppy_drna`    | GRCh38_no_alt | HG002            |
-|       PacBio HIFI        |       Sequel with Iso-Seq kit        |     -      |      `hifi_sequel2`      | GRCh38_no_alt | HG002            |
-|       PacBio HIFI        |        Revio with MAS-Seq kit        |     -      |        `hifi_mas`        | GRCh38_no_alt | HG002            |
+|         Platform         |        Chemistry/Kit/Instruments        | Basecaller | Aligner | Option (`-p/--platform`) |   Reference   | Training samples |
+| :----------------------: | :----------------------------------: | :--------: | :----------------------: | :-----------: | ---------------- | :--------------: |
+| ONT | SQK-RNA004 kit, direct RNA sequencing | Dorado | minimap2 | `ont_dorado_drna004` | GRCh38 | HG002 |
+| ONT | SQK-RNA002 kit, direct RNA sequencing | Guppy | minimap2 | `ont_guppy_drna002` | GRCh38 | HG002 |
+|           ONT            |    R9.4.1, complementary DNA sequencing     |   Guppy    | minimap2 |   `ont_guppy_cdna`    | GRCh38 | HG002       |
+|       PacBio HiFi       |       Sequel with Iso-Seq kit        |     -      | pbmm2/minimap2 |      `hifi_sequel2_pbmm2`, `hifi_sequel2_minimap2`      | GRCh38 | HG002            |
+|       PacBio HiFi    |        Revio with MAS-Seq kit        |     -      | pbmm2/minimap2 |        `hifi_mas_pbmm2`, `hifi_mas_minimap2`        | GRCh38 | HG002            |
 
 
 ------
@@ -91,7 +97,8 @@ docker run -it \
   --bam_fn ${INPUT_DIR}/input.bam \      ## use your input bam file name here
   --ref_fn ${INPUT_DIR}/ref.fa \         ## use your reference file name here
   --threads ${THREADS} \                 ## maximum threads to be used
-  --platform ${PLATFORM} \               ## options: {ont_r9_guppy_cdna, ont_r9_guppy_drna, hifi_sequel2, hifi_mas}
+  --platform ${PLATFORM} \               ## options: {ont_dorado_drna004, ont_guppy_drna002, ont_guppy_cdna, hifi_sequel2_pbmm2, hifi_sequel2_minimap2, hifi_mas_pbmm2, hifi_sequel2_minimap2}
+  --tag_variant_using_readiportal        ## optional, tag variants uisng REDIportal dataset 
   --output_dir ${OUTPUT_DIR}             ## output path prefix 
 ```
 
@@ -122,7 +129,8 @@ singularity exec \
   --bam_fn ${INPUT_DIR}/input.bam \            ## use your input bam file name here
   --ref_fn ${INPUT_DIR}/ref.fa \               ## use your reference file name here
   --threads ${THREADS} \                       ## maximum threads to be used
-  --platform ${PLATFORM} \                     ## options: {ont_r9_guppy_cdna, ont_r9_guppy_drna, hifi_sequel2, hifi_mas}
+  --platform ${PLATFORM} \                     ## options: {ont_dorado_drna004, ont_guppy_drna002, ont_guppy_cdna, hifi_sequel2_pbmm2, hifi_sequel2_minimap2, hifi_mas_pbmm2, hifi_sequel2_minimap2}
+  --tag_variant_using_readiportal              ## optional, tag variants uisng REDIportal dataset 
   --output_dir ${OUTPUT_DIR} \                 ## output path prefix
   --conda_prefix /opt/conda/envs/clair3_rna
 ```
@@ -187,7 +195,8 @@ docker run -it hkubal/clair3-rna:latest /opt/bin/clair3_rna --help
   --bam_fn ${INPUT_DIR}/input.bam \          ## use your input bam file name here
   --ref_fn ${INPUT_DIR}/ref.fa \             ## use your reference file name here
   --threads ${THREADS} \                     ## maximum threads to be used
-  --platform ${PLATFORM} \                   ## options: {ont_r9_guppy_cdna, ont_r9_guppy_drna, hifi_sequel2, hifi_mas}
+  --platform ${PLATFORM} \                   ## options: {ont_dorado_drna004, ont_guppy_drna002, ont_guppy_cdna, hifi_sequel2_pbmm2, hifi_sequel2_minimap2, hifi_mas_pbmm2, hifi_sequel2_minimap2}
+  --tag_variant_using_readiportal            ## optional, tag variants uisng REDIportal dataset 
   --output_dir ${OUTPUT_DIR}                 ## output path prefix
  
 ## Final output file: ${OUTPUT_DIR}/output.vcf.gz
@@ -207,7 +216,7 @@ docker run -it hkubal/clair3-rna:latest /opt/bin/clair3_rna --help
   -t THREADS, --threads THREADS
                         Max #threads to be used.
   -p PLATFORM, --platform PLATFORM
-                        Select the sequencing platform of the input. Possible options: {ont_r9_guppy_cdna, ont_r9_guppy_drna, hifi_sequel2, hifi_mas}.
+                        Select the sequencing platform of the input. Possible options: {ont_dorado_drna004, ont_guppy_drna002, ont_guppy_cdna, hifi_sequel2_pbmm2, hifi_sequel2_minimap2, hifi_mas_pbmm2, hifi_sequel2_minimap2}.
 ```
 
 **Miscellaneous parameters:**
@@ -257,19 +266,19 @@ docker run -it hkubal/clair3-rna:latest /opt/bin/clair3_rna --help
 #### Call variants in one or mutiple chromosomes using the `-C/--ctg_name` parameter
 
 ```bash
-./run_clair3_rna -B input.bam -R ref.fa -o output -t 8 -p ont_r9_cdna -C chr21,chr22
+./run_clair3_rna -B input.bam -R ref.fa -o output -t 8 -p ont_dorado_drna004 -C chr21,chr22
 ```
 
 #### Call variants in one specific region using the `-r/--region` parameter
 
 ```bash
-./run_clair3_rna -B input.bam -R ref.fa -o output -t 8 -p ont_r9_cdna -r chr20:1000000-2000000
+./run_clair3_rna -B input.bam -R ref.fa -o output -t 8 -p ont_dorado_drna004 -r chr20:1000000-2000000
 ```
 
 #### Call variants at interested variant sites (genotyping) using the `-G/--genotyping_mode_vcf_fn` parameter
 
 ```bash
-./run_clair3_rna -B input.bam -R ref.fa -o output -t 8 -p ont_r9_cdna -G input.vcf
+./run_clair3_rna -B input.bam -R ref.fa -o output -t 8 -p ont_dorado_drna004 -G input.vcf
 ```
 
 #### Call variants in the BED regions using the `-b/--bed_fn` parameter
@@ -277,7 +286,7 @@ docker run -it hkubal/clair3-rna:latest /opt/bin/clair3_rna --help
 We highly recommended using BED file to define multiple regions of interest like:
 
 ```bash
-./run_clair3_rna -B input.bam -R ref.fa -o output -t 8 -p ont_r9_cdna -b input.bed
+./run_clair3_rna -B input.bam -R ref.fa -o output -t 8 -p ont_dorado_drna004 -b input.bed
 ```
 
 ------
@@ -285,4 +294,6 @@ We highly recommended using BED file to define multiple regions of interest like
 #### Tag RNA editing site using REDIportal dataset
 
 RNA undergoes editing by ADAR (adenosine deaminases acting on RNA), resulting in Adenosine-to-inosine (A-to-I) changes. These A-to-I changes can be observed in RNA-seq datasets as A-to-G and T-to-C changes, which do not represent genuine RNA variants. To address this, we provide users with the option to utilize external datasets such as [REDIportal](http://srv00.recas.ba.infn.it/atlas/) to annotate RNA editing sites. In Clair3-RNA's VCF output, variants that are also RNA editing sites reported in REDIportal can be tagged. These sites will be marked as `RNAEditing` instead of `PASS` in the `FILTER` column when the `--tag_variant_using_readiportal` option is enabled.
+
+**Caution**: `--tag_variant_using_readiportal` option currently works for GRCh38 and GRCh37 reference genome only, use can specify the reference genome version by using option `--readiportal_reference_genome_version={grch38, grch37}`.
 
