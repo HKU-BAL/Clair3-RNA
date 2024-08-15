@@ -54,6 +54,16 @@ maxEpoch = 30
 OPERATION_SEED = None
 RANDOM_SEED = None
 
+support_platform_dict={
+"ont_dorado_drna004",
+"ont_guppy_drna002",
+"ont_guppy_cdna",
+"hifi_sequel2_pbmm2",
+"hifi_sequel2_minimap2",
+"hifi_mas_pbmm2",
+"hifi_sequel2_minimap2"
+}
+
 model_name_platform_dict = {
     'ont_r9_guppy_cdna': 'ont_guppy_cdna',
     'ont_r9_guppy_drna': 'ont_guppy_drna002',
