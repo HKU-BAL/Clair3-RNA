@@ -98,7 +98,7 @@ docker run -it \
   --ref_fn ${INPUT_DIR}/ref.fa \         ## use your reference file name here
   --threads ${THREADS} \                 ## maximum threads to be used
   --platform ${PLATFORM} \               ## options: {ont_dorado_drna004, ont_guppy_drna002, ont_guppy_cdna, hifi_sequel2_pbmm2, hifi_sequel2_minimap2, hifi_mas_pbmm2, hifi_sequel2_minimap2}
-  --tag_variant_using_readiportal        ## optional, tag variants uisng REDIportal dataset 
+  --tag_variant_using_readiportal        ## optional, tag variants using REDIportal dataset 
   --output_dir ${OUTPUT_DIR}             ## output path prefix 
 ```
 
@@ -118,19 +118,18 @@ conda create -n singularity-env -c conda-forge singularity -y
 conda activate singularity-env
 
 # singularity pull docker pre-built image
-singularity pull docker://hkubal/clair3_rna:latest
+singularity pull docker://hkubal/clair3-rna:latest
 
 # run the sandbox like this afterward
 singularity exec \
   -B ${INPUT_DIR},${OUTPUT_DIR} \
-  clair3_rna_latest.sif \
-  hkubal/clair3_rna:latest \
+  clair3-rna_latest.sif \
   /opt/bin/run_clair3_rna \
   --bam_fn ${INPUT_DIR}/input.bam \            ## use your input bam file name here
   --ref_fn ${INPUT_DIR}/ref.fa \               ## use your reference file name here
   --threads ${THREADS} \                       ## maximum threads to be used
   --platform ${PLATFORM} \                     ## options: {ont_dorado_drna004, ont_guppy_drna002, ont_guppy_cdna, hifi_sequel2_pbmm2, hifi_sequel2_minimap2, hifi_mas_pbmm2, hifi_sequel2_minimap2}
-  --tag_variant_using_readiportal              ## optional, tag variants uisng REDIportal dataset 
+  --tag_variant_using_readiportal              ## optional, tag variants using REDIportal dataset 
   --output_dir ${OUTPUT_DIR} \                 ## output path prefix
   --conda_prefix /opt/conda/envs/clair3_rna
 ```
@@ -151,7 +150,7 @@ chmod +x ./Miniconda3-latest-Linux-x86_64.sh
 
 ```bash
 # create and activate an environment named clair3_rna
-# install pypy and packages in the environemnt
+# install pypy and packages in the environment
 conda create -n clair3_rna -c conda-forge -c bioconda clair3 mosdepth bedtools -y
 source activate clair3_rna
 
@@ -196,7 +195,7 @@ docker run -it hkubal/clair3-rna:latest /opt/bin/clair3_rna --help
   --ref_fn ${INPUT_DIR}/ref.fa \             ## use your reference file name here
   --threads ${THREADS} \                     ## maximum threads to be used
   --platform ${PLATFORM} \                   ## options: {ont_dorado_drna004, ont_guppy_drna002, ont_guppy_cdna, hifi_sequel2_pbmm2, hifi_sequel2_minimap2, hifi_mas_pbmm2, hifi_sequel2_minimap2}
-  --tag_variant_using_readiportal            ## optional, tag variants uisng REDIportal dataset 
+  --tag_variant_using_readiportal            ## optional, tag variants using REDIportal dataset 
   --output_dir ${OUTPUT_DIR}                 ## output path prefix
  
 ## Final output file: ${OUTPUT_DIR}/output.vcf.gz
@@ -263,7 +262,7 @@ docker run -it hkubal/clair3-rna:latest /opt/bin/clair3_rna --help
   --min_mq MIN_MQ       Minimal mapping quality required for an alignment to be considered. Default: 5.
 ```
 
-#### Call variants in one or mutiple chromosomes using the `-C/--ctg_name` parameter
+#### Call variants in one or multiple chromosomes using the `-C/--ctg_name` parameter
 
 ```bash
 ./run_clair3_rna -B input.bam -R ref.fa -o output -t 8 -p ont_dorado_drna004 -C chr21,chr22
