@@ -1,5 +1,6 @@
 <div align="center">
     <img src="images/icon.png" width = "200" alt="Clair3-RNA">
+    <img src="images/fjsClaiRR.jpg" width = "200" alt="aka. ClaiRR. Image credits to Fritz Sedlezeck.">
 </div>
 
 # Clair3-RNA - long-read small variant caller for RNA sequencing data
