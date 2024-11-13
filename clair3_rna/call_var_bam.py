@@ -150,6 +150,7 @@ def Run(args):
     call_snp_only_mode = CommandOption('call_snp_only', args.call_snp_only)
     enable_long_indel_mode = CommandOption('enable_long_indel', args.enable_long_indel)
     keep_iupac_bases_mode = CommandOption('keep_iupac_bases', args.keep_iupac_bases)
+    enable_phasing_model = CommandOption('add_phasing_feature', args.enable_phasing_model)
 
     ctgStart = None
     ctgEnd = None
@@ -214,6 +215,7 @@ def Run(args):
         CommandOption('sampleName', args.sampleName),
         CommandOption('minCoverage', args.minCoverage),
         CommandOption('minMQ', args.minMQ),
+        enable_phasing_model,
         ctgStart,
         ctgEnd,
         chunk_id,
@@ -390,6 +392,9 @@ def main():
     # options for advanced users
     parser.add_argument('--fast_mode', type=str2bool, default=False,
                         help="EXPERIMENTAL: Skip variant candidates with AF <= 0.15, default: %(default)s")
+
+    parser.add_argument('--enable_phasing_model', type=str2bool, default=False,
+                        help="EXPERIMENTAL: Keep IUPAC (non ACGTN) reference and alternate bases, default: convert all IUPAC bases to N")
 
     parser.add_argument('--minCoverage', type=int, default=param.min_coverage,
                         help="EXPERIMENTAL: Minimum coverage required to call a variant, default: %(default)f")

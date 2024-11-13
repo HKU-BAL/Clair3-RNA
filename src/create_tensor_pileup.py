@@ -83,7 +83,7 @@ class CandidateStdout(object):
 
 
 def generate_tensor(pos, pileup_bases, reference_sequence, reference_start, reference_base, minimum_af_for_candidate,
-                    minimum_snp_af_for_candidate, minimum_indel_af_for_candidate, platform, fast_mode, call_snp_only):
+                    minimum_snp_af_for_candidate, minimum_indel_af_for_candidate, platform, fast_mode, call_snp_only, phasing_info=None):
     """
     Generate pileup input tensor
     pos: center position for pileup generation, default no_of_positions = flankingBaseNum + 1 + flankingBaseNum
@@ -103,28 +103,98 @@ def generate_tensor(pos, pileup_bases, reference_sequence, reference_start, refe
     alt_count = 0
     ins_count = 0
     del_count = 0
-    while base_idx < len(pileup_bases):
-        base = pileup_bases[base_idx]
-        if base in "ACGTNacgtn#*":
-            base_list.append(base)
-        elif base == '+' or base == '-':
-            base_idx += 1
-            advance = 0
-            while True:
-                num = pileup_bases[base_idx]
-                if num.isdigit():
-                    advance = advance * 10 + int(num)
-                    base_idx += 1
-                else:
-                    break
-            base_list.append(base + pileup_bases[base_idx: base_idx + advance])
-            base_idx += advance - 1
+    phasing_idx = 0
+    phasing = []
+    if phasing_info is not None:
+        while base_idx < len(pileup_bases):
+            base = pileup_bases[base_idx]
+            if base in "ACGTNacgtn#*":
+                base_list.append(base)
+                phasing.append(phasing_info[phasing_idx])
+                phasing_idx += 1
+            elif base == '+' or base == '-':
+                base_idx += 1
+                advance = 0
+                while True:
+                    num = pileup_bases[base_idx]
+                    if num.isdigit():
+                        advance = advance * 10 + int(num)
+                        base_idx += 1
+                    else:
+                        break
+                base_list.append(base + pileup_bases[base_idx: base_idx + advance])
+                phasing.append('0')
+                base_idx += advance - 1
 
-        elif base == '^':  # start of a read, next character is mapping quality
+            elif base == '^':  # start of a read, next character is mapping quality
+                base_idx += 1
+            elif base in '<>':
+                phasing_idx += 1
+            # elif base == '$': # end of read with '$' symbol
             base_idx += 1
-        # elif base == '$': # end of read with '$' symbol
-        base_idx += 1
+    else:
+        while base_idx < len(pileup_bases):
+            base = pileup_bases[base_idx]
+            if base in "ACGTNacgtn#*":
+                base_list.append(base)
+            elif base == '+' or base == '-':
+                base_idx += 1
+                advance = 0
+                while True:
+                    num = pileup_bases[base_idx]
+                    if num.isdigit():
+                        advance = advance * 10 + int(num)
+                        base_idx += 1
+                    else:
+                        break
+                base_list.append(base + pileup_bases[base_idx: base_idx + advance])
+                base_idx += advance - 1
+
+            elif base == '^':  # start of a read, next character is mapping quality
+                base_idx += 1
+            # elif base == '$': # end of read with '$' symbol
+            base_idx += 1
+
     base_counter = Counter(base_list)
+    if phasing_info is not None:
+        AP, CP, GP, TP, IP, DP, AM, CM, GM, TM, IM, DM = [0] * 12
+        for idx, (bl, p) in enumerate(zip(base_list, phasing)):
+            if bl[0] == '+' and idx > 0:
+                p_previous = phasing[idx - 1]
+                if p_previous == '1':
+                    IP += 1
+                elif p_previous == '2':
+                    IM += 1
+            elif bl[0] == '-' and idx > 0:
+                p_previous = phasing[idx - 1]
+                if p_previous == '1':
+                    DP += 1
+                elif p_previous == '2':
+                    DM += 1
+            else:
+                if bl.upper() in 'ACGT':
+                    if bl.upper() == 'A':
+                        if p == '1':
+                            AP += 1
+                        elif p == '2':
+                            AM += 1
+                    elif bl.upper() == 'C':
+                        if p == '1':
+                            CP += 1
+                        elif p == '2':
+                            CM += 1
+                    elif bl.upper() == 'G':
+                        if p == '1':
+                            GP += 1
+                        elif p == '2':
+                            GM += 1
+                    elif bl.upper() == 'T':
+                        if p == '1':
+                            TP += 1
+                        elif p == '2':
+                            TM += 1
+        pileup_tensor += [AP, CP, GP, TP, IP, DP, AM, CM, GM, TM, IM, DM]
+
     depth, max_ins_0, max_del_0, max_ins_1, max_del_1 = 0, 0, 0, 0, 0
     max_del_length = 0
     for key, count in base_counter.items():
@@ -330,12 +400,13 @@ def CreateTensorPileup(args):
     max_depth_option = ' --max-depth {}'.format(args.max_depth) if args.max_depth is not None else " "
     bed_option = ' -l {}'.format(extend_bed) if is_extend_bed_file_given else ""
     gvcf_option = ' -a' if args.gvcf else ""
+    phasing_option = "--output-extra HP " if args.add_phasing_feature else " "
     samtools_mpileup_process = subprocess_popen(
         shlex.split(
             "{} mpileup  {} -r {} --reverse-del".format(samtools_execute_command,
                                                         bam_file_path,
                                                         " ".join(reads_regions), )
-            + mq_option + bq_option + bed_option + flags_option + max_depth_option + gvcf_option))
+            + mq_option + bq_option + bed_option + flags_option + max_depth_option + gvcf_option + phasing_option))
 
     if tensor_can_output_path != "PIPE":
         tensor_can_fpo = open(tensor_can_output_path, "wb")
@@ -350,7 +421,8 @@ def CreateTensorPileup(args):
     pos_offset = 0
     pre_pos = -1
     # in rna calling mode, we set the empty tensor as 0 to allow tensor concat
-    tensor = [[]] * sliding_window_size if not rna_calling_mode else [[0] * channel_size] * sliding_window_size
+    pileup_channel_size = channel_size + param.phased_channel_size if args.add_phasing_feature else channel_size
+    tensor = [[]] * sliding_window_size if not rna_calling_mode else [[0] * pileup_channel_size] * sliding_window_size
     candidate_position = []
     all_alt_dict = {}
     depth_dict = {}
@@ -370,9 +442,11 @@ def CreateTensorPileup(args):
     empty_pileup_flag = True
     for row in samtools_mpileup_process.stdout:
         empty_pileup_flag = False 
-        columns = row.strip().split('\t',maxsplit=5)
+        columns = row.strip().split('\t',maxsplit=6)
         pos = int(columns[1])
         pileup_bases = columns[4]
+        phasing_info = columns[6].split(',') if len(columns) >= 7 else None
+
         reference_base = reference_sequence[pos - reference_start].upper()
         valid_reference_flag = True
         within_flag = True
@@ -395,7 +469,7 @@ def CreateTensorPileup(args):
         # start with a new region, clear all sliding windows cache, avoid memory occupation
         if pre_pos + 1 != pos:
             pos_offset = 0
-            tensor = [[]] * sliding_window_size if not rna_calling_mode else [[0] * channel_size] * sliding_window_size
+            tensor = [[]] * sliding_window_size if not rna_calling_mode else [[0] * pileup_channel_size] * sliding_window_size
             candidate_position = []
         pre_pos = pos
 
@@ -411,7 +485,8 @@ def CreateTensorPileup(args):
                                                                                                    minimum_indel_af_for_candidate=minimum_indel_af_for_candidate,
                                                                                                    platform=platform,
                                                                                                    fast_mode=fast_mode,
-                                                                                                   call_snp_only=call_snp_only)
+                                                                                                   call_snp_only=call_snp_only,
+                                                                                                   phasing_info=phasing_info)
         if args.gvcf and within_flag and valid_reference_flag:
             cur_n_total = 0
             cur_n_ref = 0
@@ -488,6 +563,9 @@ def CreateTensorPileup(args):
 
 def main():
     parser = ArgumentParser(description="Generate variant candidate tensors using pileup")
+
+    parser.add_argument('--add_phasing_feature', type=str2bool, default=False,
+                        help="EXPERIMENTAL: Skip variant candidates with AF <= 0.15, default: %(default)s")
 
     parser.add_argument('--platform', type=str, default='ont',
                         help="Sequencing platform of the input. Options: 'ont,hifi,ilmn', default: %(default)s")
