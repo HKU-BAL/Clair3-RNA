@@ -61,7 +61,7 @@ def batches_from(iterable, item_from, batch_size=1):
         yield chunk
 
 
-def tensor_generator_from(tensor_file_path, batch_size, pileup, platform):
+def tensor_generator_from(tensor_file_path, batch_size, pileup, platform, add_phasing=False):
     global param
     float_type = 'int32'
     if pileup:
@@ -109,9 +109,14 @@ def tensor_generator_from(tensor_file_path, batch_size, pileup, platform):
         tensors = np.empty(([batch_size, prod_tensor_shape]), dtype=np.dtype(float_type))
         positions = []
         alt_info_list = []
-        for tensor, pos, seq, alt_info in batch:
+        for idx, (tensor, pos, seq, alt_info) in enumerate(batch):
             if seq[param.flankingBaseNum] not in BASE2NUM:
                 continue
+            if len(tensor) != prod_tensor_shape:
+                prod_tensor_shape = len(tensor)
+                tensor_shape[1] += param.phased_channel_size
+                if idx == 0:
+                    tensors = np.empty(([batch_size, prod_tensor_shape]), dtype=np.dtype(float_type))
             tensors[len(positions)] = tensor
             positions.append(pos)
             alt_info_list.append(alt_info)
