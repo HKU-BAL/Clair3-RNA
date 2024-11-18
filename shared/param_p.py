@@ -1,6 +1,6 @@
 #Clair3-RNA pileup parameters
 caller_name=REPO_NAME="Clair3-RNA"
-version = "0.0.2"
+version = "0.2.0"
 import re
 from itertools import accumulate
 
@@ -30,6 +30,7 @@ gq_bin_size = 5
 #           0    1    2    3    4    5    6    7     8    9    10   11  12   13    14  15   16    17
 channel = ('A', 'C', 'G', 'T', 'I', 'I1', 'D', 'D1', '*', 'a', 'c', 'g','t', 'i', 'i1','d', 'd1','#')
 channel_size = len(channel)
+phased_channel_size = 12
 flankingBaseNum = 16
 no_of_positions = 2 * flankingBaseNum + 1
 ont_input_shape = input_shape = [no_of_positions, channel_size]
@@ -69,6 +70,16 @@ model_name_platform_dict = {
     'ont_r9_guppy_drna': 'ont_guppy_drna002',
     'hifi_sequel2': 'hifi_sequel2_pbmm2',
     'hifi_mas': 'hifi_mas_pbmm2'
+}
+
+support_phasing_platform_dict={
+"ont_dorado_drna004",
+"ont_guppy_drna002",
+"ont_guppy_cdna",
+"hifi_sequel2_pbmm2",
+"hifi_sequel2_minimap2",
+"hifi_mas_pbmm2",
+"hifi_sequel2_minimap2"
 }
 
 min_thred_qual = {'ont': 8,

@@ -67,6 +67,8 @@ OutputPath = namedtuple('OutputPath', [
     'split_bed_path',
     'candidates_path',
     'pileup_output_path',
+    'phased_bam_path',
+    'phased_vcf_path'
 ])
 
 
@@ -101,12 +103,16 @@ def create_output_folder(args):
     split_bed_path = folder_path_from(os.path.join(tmp_file_path, 'split_beds'), create_not_found=True)
     candidates_path = folder_path_from(os.path.join(tmp_file_path, 'candidates'), create_not_found=True)
     pileup_output_path = folder_path_from(os.path.join(tmp_file_path, 'pileup_output'), create_not_found=True)
+    phased_bam_path = folder_path_from(os.path.join(tmp_file_path, 'phased_output', 'phased_bam'), create_not_found=True)
+    phased_vcf_path = folder_path_from(os.path.join(tmp_file_path, 'phased_output', 'phased_vcf'), create_not_found=True)
 
     output_path = OutputPath(log_path=log_path,
                              tmp_file_path=tmp_file_path,
                              split_bed_path=split_bed_path,
                              candidates_path=candidates_path,
-                             pileup_output_path=pileup_output_path)
+                             pileup_output_path=pileup_output_path,
+                             phased_bam_path=phased_bam_path,
+                             phased_vcf_path=phased_vcf_path)
 
     return output_path
 
@@ -473,13 +479,20 @@ def check_args(args):
         args.platform = updated_platform
 
     if bai_fn is None and crai_fn is None and csi_fn is None:
-        sys.exit(log_error("[ERROR] Tumor BAM index file {} or {} not found. Please run `samtools index $BAM` first.".format(args.bam_fn + '.bai',
+        sys.exit(log_error("[ERROR] BAM index file {} or {} not found. Please run `samtools index $BAM` first.".format(args.bam_fn + '.bai',
                                                                                       args.bam_fn + '.crai')))
+
+    if args.enable_phasing_model and args.platform not in param.support_phasing_platform_dict:
+        sys.exit(log_error("[ERROR] Phasing model is not supported for platform {}".format(args.platform)))
 
     if args.pileup_model_path is None:
         args.pileup_model_path = os.path.join(args.conda_prefix, 'bin', 'clair3_rna_models', args.platform, 'variables')
+    if args.phased_pileup_model_path is None:
+        args.phased_pileup_model_path = os.path.join(args.conda_prefix, 'bin', 'clair3_rna_models', args.platform, 'phased_variables')
 
     output = file_path_from(file_name=args.pileup_model_path + '.index', exit_on_not_found=True, is_directory=False, allow_none=False)
+    if args.enable_phasing_model:
+        output = file_path_from(file_name=args.phased_pileup_model_path + '.index', exit_on_not_found=True, is_directory=False, allow_none=False)
 
     if args.tag_variant_using_readiportal:
 
@@ -524,6 +537,12 @@ def check_args(args):
         for k, v in param.min_thred_qual.items():
             if args.platform.startswith(k):
                 args.qual = v
+
+    if args.longphase is None and (args.use_longphase_for_intermediate_phasing or args.use_longphase_for_intermediate_haplotagging):
+        args.longphase = os.path.join(args.conda_prefix, 'bin', 'longphase')
+
+    if args.whatshap is None:
+        args.whatshap = os.path.join(args.conda_prefix, 'bin', 'whatshap')
 
     legal_range_from(param_name="threads", x=args.threads, min_num=1, exit_out_of_range=True)
     legal_range_from(param_name="qual", x=args.qual, min_num=0, exit_out_of_range=True)
@@ -600,6 +619,7 @@ def print_command_line(args):
         cmdline += '--platform {} '.format(args.platform)
         cmdline += '--output_dir {} '.format(args.output_dir)
         cmdline += '--pileup_model_path {} '.format(args.pileup_model_path) if args.pileup_model_path is not None else ""
+        cmdline += '--phased_pileup_model_path {} '.format(args.phased_pileup_model_path) if args.phased_pileup_model_path is not None else ""
         cmdline += '--ctg_name {} '.format(args.ctg_name) if args.ctg_name is not None else ""
         cmdline += '--region {} '.format(args.region) if args.region is not None else ""
         cmdline += '--bed_fn {} '.format(args.bed_fn) if args.bed_fn is not None else ""
@@ -619,6 +639,11 @@ def print_command_line(args):
         cmdline += '--parallel {} '.format(args.parallel) if args.parallel != "parallel" else ""
         cmdline += '--min_mq {}'.format(args.min_mq) if args.min_mq is not None else ""
         cmdline += '--tag_variant_using_readiportal ' if args.tag_variant_using_readiportal else ""
+        cmdline += '--enable_phasing_model ' if args.enable_phasing_model else ""
+        cmdline += '--longphase {} '.format(args.longphase) if args.longphase is not None else ""
+        cmdline += '--whatshap {} '.format(args.whatshap) if args.whatshap is not None else ""
+        cmdline += '--use_longphase_for_intermediate_phasing {} '.format(args.use_longphase_for_intermediate_phasing) if args.use_longphase_for_intermediate_phasing else ""
+        cmdline += '--use_longphase_for_intermediate_haplotagging {} '.format(args.use_longphase_for_intermediate_haplotagging) if args.use_longphase_for_intermediate_haplotagging else ""
         cmdline += '--readiportal_source_fn {} '.format(args.readiportal_source_fn) if args.readiportal_source_fn is not None else ""
         cmdline += '--readiportal_database_filter_tag {} '.format(args.readiportal_database_filter_tag) if args.readiportal_database_filter_tag is not None else ""
         cmdline += '--readiportal_reference_genome_version {} '.format(args.readiportal_reference_genome_version) if args.readiportal_reference_genome_version is not None else ""
@@ -692,6 +717,131 @@ def calling_workflow(args):
     p_mv_command += ' --show_ref True ' if args.print_ref_calls else ""
     p_mv_command += ' --contigs_fn ' + os.path.join(args.output_dir, 'tmp', 'CONTIGS')
     commands_list += [p_mv_command]
+
+    # #STEP3 phasing and haplotagging
+    if args.enable_phasing_model:
+        echo_list.append("[INFO] Phase the BAM")
+        if args.use_longphase_for_intermediate_phasing:
+            pt_command = '( ' + time + args.parallel
+            pt_command += ' --joblog ' + args.output_dir + '/logs/parallel_2_phase.log'
+            pt_command += ' -j ' + str(args.threads)
+            pt_command += ' ' + args.longphase + ' phase '
+            pt_command += ' -s ' + os.path.join(args.output_dir, args.output_prefix +'.vcf.gz' )
+            pt_command += ' -b ' + args.bam_fn
+            pt_command += ' -r ' + args.ref_fn
+            pt_command += ' -t ' + str(args.threads)
+            pt_command += ' -o ' + args.output_dir + '/tmp/phased_output/phased_vcf/phased_{1}'
+            pt_command += ' --ont' if args.platform.startswith('ont') else ' --pb'
+            pt_command += ' :::: ' + args.output_dir + '/tmp/CONTIGS'
+            pt_command += ' && ' + args.parallel
+            pt_command += ' -j ' + str(args.threads)
+            pt_command += ' bgzip -f ' + args.output_dir + '/tmp/phased_output/phased_vcf/phased_{1}.vcf'
+            pt_command += ' :::: ' + args.output_dir + '/tmp/CONTIGS'
+            pt_command += ' ) 2>&1 | tee ' + args.output_dir + '/logs/2_phase.log'
+        else:
+            pt_command = '( ' + time + args.parallel
+            pt_command += ' --joblog ' + args.output_dir + '/logs/parallel_2_phase.log'
+            pt_command += ' -j ' + str(args.threads)
+            pt_command += ' ' + args.whatshap + ' phase '
+            pt_command += ' --output ' + args.output_dir + '/tmp/phased_output/phased_vcf/phased_{1}.vcf.gz'
+            pt_command += ' --reference ' + args.ref_fn
+            pt_command += ' --chromosome {1}'
+            pt_command += ' --distrust-genotypes'
+            pt_command += ' --ignore-read-groups'
+            pt_command += ' ' + os.path.join(args.output_dir, args.output_prefix +'.vcf.gz' )
+            pt_command += ' ' + args.bam_fn
+            pt_command += ' :::: ' + args.output_dir + '/tmp/CONTIGS'
+            pt_command += ' ) 2>&1 | tee ' + args.output_dir + '/logs/2_phase.log'
+
+        tabix_command = args.parallel + ' -j ' + str(args.threads)
+        tabix_command += ' tabix' + ' -f -p vcf'
+        tabix_command += ' ' + args.output_dir + '/tmp/phased_output/phased_vcf/phased_{1}.vcf.gz'
+        tabix_command += ' :::: ' + args.output_dir + '/tmp/CONTIGS'
+        commands_list.append(pt_command + ' && ' + tabix_command)
+
+        echo_list.append("[INFO] Haplotag the BAM")
+        if args.use_longphase_for_intermediate_haplotagging:
+            ht_command = '( ' + time + args.parallel
+            ht_command += ' --joblog ' + args.output_dir + '/logs/parallel_3_haplotag.log'
+            ht_command += ' -j ' + str(args.threads)
+            ht_command += ' ' + args.longphase + ' haplotag'
+            ht_command += ' -o ' + args.output_dir + '/tmp/phased_output/phased_bam/{1}'
+            ht_command += ' --reference ' + args.ref_fn
+            ht_command += ' --region {1} '
+            ht_command += ' -s ' + args.output_dir + '/tmp/phased_output/phased_vcf/phased_{1}.vcf.gz'
+            ht_command += ' -b ' + args.bam_fn
+            ht_command += ' :::: ' + args.output_dir + '/tmp/CONTIGS'
+            ht_command += ' ) 2>&1 | tee ' + args.output_dir + '/logs/3_haplotag.log'
+        else:
+            ht_command = '( ' + time + args.parallel
+            ht_command += ' --joblog ' + args.output_dir + '/logs/parallel_3_haplotag.log'
+            ht_command += ' -j ' + str(args.threads)
+            ht_command += ' ' + args.whatshap + ' haplotag'
+            ht_command += ' --output ' + args.output_dir + '/tmp/phased_output/phased_bam/{1}.bam'
+            ht_command += ' --reference ' + args.ref_fn
+            ht_command += ' --regions {1} '
+            ht_command += ' --ignore-read-groups'
+            ht_command += ' ' + args.output_dir + '/tmp/phased_output/phased_vcf/phased_{1}.vcf.gz'
+            ht_command += ' ' + args.bam_fn
+            ht_command += ' :::: ' + args.output_dir + '/tmp/CONTIGS'
+            ht_command += ' ) 2>&1 | tee ' + args.output_dir + '/logs/3_haplotag.log'
+
+        index_command = args.parallel + ' -j ' + str(args.threads)
+        index_command += ' ' + args.samtools + ' index '
+        index_command += ' -@' + str(args.threads)
+        index_command += ' ' + args.output_dir + '/tmp/phased_output/phased_bam/{1}.bam'
+        index_command += ' :::: ' + args.output_dir + '/tmp/CONTIGS'
+        commands_list.append(ht_command + ' && ' + index_command)
+
+        # STEP 4: Call Variant in phasing mode
+        echo_list.append("[INFO] Pileup Model Prediction")
+        cvp_command = '( ' + time + args.parallel
+        cvp_command += ' -C " " --joblog ' + args.output_dir + '/logs/parallel_4_predict_phasing.log'
+        cvp_command += ' -j ' + str(args.threads)
+        cvp_command += ' ' + args.python + ' ' + main_entry + " call_var_bam"
+        cvp_command += ' --chkpnt_fn ' + args.phased_pileup_model_path
+        cvp_command += ' --bam_fn ' + args.output_dir + '/tmp/phased_output/phased_bam/{1}.bam'
+        cvp_command += ' --call_fn ' + os.path.join(args.output_dir, 'tmp', 'pileup_output', "phased_pileup_{1}_{2}.vcf")
+        cvp_command += ' --sampleName ' + str(args.sample_name)
+        cvp_command += ' --ref_fn ' + args.ref_fn
+        cvp_command += ' --extend_bed ' + args.output_dir + '/tmp/split_beds' + "/{1}"
+        cvp_command += ' --bed_fn ' + str(args.bed_fn) if args.bed_fn is not None else ""
+        cvp_command += ' --vcf_fn ' + str(
+            args.genotyping_mode_vcf_fn) if args.genotyping_mode_vcf_fn is not None else ""
+        cvp_command += ' --ctgName {1}'
+        cvp_command += ' --chunk_id {2}'
+        cvp_command += ' --chunk_num {3}'
+        cvp_command += ' --platform ' + args.platform
+        cvp_command += ' --snp_min_af ' + str(args.snp_min_af)
+        cvp_command += ' --indel_min_af ' + str(args.indel_min_af)
+        cvp_command += ' --minMQ ' + str(args.min_mq)
+        cvp_command += ' --minCoverage ' + str(args.min_coverage)
+        cvp_command += ' --samtools ' + str(args.samtools)
+        cvp_command += ' --pileup '
+        cvp_command += ' --cmd_fn ' + os.path.join(args.output_dir, 'tmp', 'CMD')
+        cvp_command += ' --show_ref ' if args.print_ref_calls else ""
+        cvp_command += ' --enable_phasing_model True'
+        cvp_command += ' :::: ' + args.output_dir + '/tmp/CHUNK_LIST'
+        cvp_command += ' ) 2>&1 | tee ' + args.output_dir + '/logs/4_call_var_bam_pileup_phasing.log'
+        commands_list += [cvp_command]
+
+        # STEP 2: MERGE FINAL VCF
+        echo_list.append("[INFO] Merge pileup VCFs using phasing model")
+        p_mv_command = args.pypy + ' ' + main_entry + ' sort_vcf'
+        p_mv_command += ' --input_dir ' + args.output_dir + '/tmp/pileup_output'
+        p_mv_command += ' --vcf_fn_prefix ' + 'phased_pileup'
+        p_mv_command += ' --output_fn ' + os.path.join(args.output_dir, args.output_prefix + '_enable_phasing.vcf')
+        p_mv_command += ' --cmd_fn ' + os.path.join(args.output_dir, 'tmp', 'CMD')
+        p_mv_command += ' --ref_fn ' + args.ref_fn
+        p_mv_command += ' --qual ' + str(args.qual) if args.qual is not None else ""
+        p_mv_command += ' --tag_variant_using_readiportal True' if args.tag_variant_using_readiportal else ""
+        p_mv_command += ' --readiportal_source_fn {}'.format(args.readiportal_source_fn) if args.readiportal_source_fn is not None else ""
+        p_mv_command += ' --readiportal_database_filter_tag {}'.format(args.readiportal_database_filter_tag) if args.readiportal_database_filter_tag is not None else ""
+        p_mv_command += ' --output_no_tagging_fn ' + os.path.join(args.output_dir,args.output_prefix + '_no_tagging_enable_phasing.vcf')
+        p_mv_command += ' --compress_vcf True '
+        p_mv_command += ' --show_ref True ' if args.print_ref_calls else ""
+        p_mv_command += ' --contigs_fn ' + os.path.join(args.output_dir, 'tmp', 'CONTIGS')
+        commands_list += [p_mv_command]
 
     # excute commands step by step
     skip_steps = args.skip_steps.rstrip().split(',') if args.skip_steps else None
@@ -897,6 +1047,19 @@ def param_parser():
     )
 
     optional_params.add_argument(
+        "--enable_phasing_model",
+        action='store_true',
+        help="Enable phasing with whatshap or longphase. Usually leads to performance improvement when coverage is sufficient. Default: False."
+    )
+
+    optional_params.add_argument(
+        "--phased_pileup_model_path",
+        type=str,
+        default=None,
+        help="Specify the path prefix to your own pileup phasing model. Including ${phased_pileup_model_path}.data-00000-of-00001, ${phased_pileup_model_path}.index."
+    )
+
+    optional_params.add_argument(
         "--python",
         type=str,
         default="python3",
@@ -922,6 +1085,34 @@ def param_parser():
         type=str,
         default="parallel",
         help="Absolute path of parallel, parallel >= 20191122 is required."
+    )
+
+    optional_params.add_argument(
+        "--longphase",
+        type=str,
+        default=None,
+        help="Absolute path of longphase, longphase >= 1.7 is required."
+    )
+
+    optional_params.add_argument(
+        "--whatshap",
+        type=str,
+        default=None,
+        help="Absolute path of whatshap, whatshap >= 1.0 is required."
+    )
+
+    optional_params.add_argument(
+        "--use_longphase_for_intermediate_phasing",
+        type=str2bool,
+        default=None,
+        help="Use longphase for intermediate phasing. Default: False."
+    )
+
+    optional_params.add_argument(
+        "--use_longphase_for_intermediate_haplotagging",
+        type=str2bool,
+        default=None,
+        help="Use longphase for intermediate haplotagging. Default: False."
     )
 
     optional_params.add_argument(
@@ -1078,6 +1269,10 @@ def main():
     if args.tag_variant_using_readiportal:
         logging("[INFO] Finish calling, output file without readiportal dataset tagging: {}/{}_no_tagging.vcf.gz\n".format(args.output_dir, args.output_prefix))
     logging("[INFO] Finish calling, output file: {}/{}.vcf.gz\n".format(args.output_dir, args.output_prefix))
+
+    if args.enable_phasing_model:
+        logging("[INFO] Finish calling, output file with phasing model: {}/{}_enable_phasing.vcf.gz\n".format(args.output_dir, args.output_prefix))
+        logging("[INFO] Finish calling, output file without tagging with phasing model: {}/{}_no_tagging_enable_phasing.vcf.gz\n".format(args.output_dir, args.output_prefix))
 
     if args.tee is not None:
         args.tee.stdin.close()

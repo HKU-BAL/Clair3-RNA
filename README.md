@@ -3,7 +3,7 @@
     <img src="images/fjsClaiRR.jpg" width = "200" title="aka. ClaiRR. Image credits to Fritz Sedlezeck.">
 </div>
 
-# Clair3-RNA - long-read small variant caller for RNA sequencing data
+# Clair3-RNA - A deep learning-based small variant caller for long-read RNA sequencing data
 
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
@@ -14,7 +14,7 @@ Email: {rbluo,zxzheng}@cs.hku.hk
 
 ## Introduction
 
-Clair3-RNA is a small variant caller for RNA long-read data. Clair3-RNA supports ONT complementary DNA sequencing (cDNA) and direct RNA sequencing (dRNA). dRNA sequencing support the ONT latest [SQK-RNA004 kit](https://community.nanoporetech.com/docs/prepare/library_prep_protocols/direct-rna-sequencing-sqk-rna004/v/drs_9195_v4_revd_20sep2023) data for variant calling. Clair3-RNA also supports PacBio Sequel and PacBio MAS-Seq RNA sequencing data.
+Clair3-RNA is a small variant caller for RNA long-read data. Clair3-RNA supports ONT complementary DNA sequencing (cDNA) and direct RNA sequencing (dRNA). dRNA sequencing support the ONT latest [SQK-RNA004 kit](https://community.nanoporetech.com/docs/prepare/library_prep_protocols/direct-rna-sequencing-sqk-rna004/v/drs_9195_v4_revd_20sep2023) data for variant calling. Clair3-RNA also supports PacBio Sequel and PacBio MAS-Seq RNA sequencing data. Clair3-RNA reached a ~95% F1-score for ONT dRNA using SQK-RNA004 kit and ~96% F1-score using PacBio Iso-Seq and MAS-Seq, respectively, with at least ten supporting reads and disregarding the zygosity. With read phased, the performance reached ~97% for ONT and ~98% for PacBio.
 
 For germline small variant calling, please use [Clair3](https://github.com/HKU-BAL/Clair3). 
 
@@ -39,6 +39,8 @@ For somatic small variant calling using tumor sample only, please try [ClairS-TO
 ----
 
 ## Latest Updates
+*v0.2.0 (Nov 18, 2024)* : 1. Added a new pileup phasing model (enable by using `--enable_phasing_model` opiton) for ONT dRNA004(`ont_dorado_drna004`), PacBio Iso-Seq(`hifi_sequel2_minimap2`), and PacBio MAS-Seq(`hifi_mas_minimap2`), the SNP performance improved by ~2% and Indel performance improved by ~6%. 2. Fixed some formatting issues in the calling workflow.
+
 *v0.1.0 (Aug 15, 2024)* : 1. Added a new ONT dRNA004 direct RNA sequencing model (`ont_dorado_drna004`) for SQK-RNA004 kit. 2. Added new PacBio Sequel (`hifi_sequel2_minimap2`) and Revio (`hifi_mas_minimap2`) model to support minimap2 alignment. 3. Enhance model training techniques to boost performance by incorporating strategies such as managing low-coverage sites, verifying variant zygosity, filtering RNA editing sites, etc.  4. Renamed all ONT and PacBio model names, check [here](https://github.com/HKU-BAL/Clair3-RNA?tab=readme-ov-file#pre-trained-models) for more details.
 
 *v0.0.1 (Nov 27, 2023)*: Initial release for early access.
@@ -99,7 +101,8 @@ docker run -it \
   --ref_fn ${INPUT_DIR}/ref.fa \         ## use your reference file name here
   --threads ${THREADS} \                 ## maximum threads to be used
   --platform ${PLATFORM} \               ## options: {ont_dorado_drna004, ont_guppy_drna002, ont_guppy_cdna, hifi_sequel2_pbmm2, hifi_sequel2_minimap2, hifi_mas_pbmm2, hifi_sequel2_minimap2}
-  --tag_variant_using_readiportal        ## optional, tag variants using REDIportal dataset 
+  --tag_variant_using_readiportal \      ## optional, tag variants using REDIportal dataset
+  --enable_phasing_model \               ## optional, enable calling using phasing model
   --output_dir ${OUTPUT_DIR}             ## output path prefix 
 ```
 
@@ -130,7 +133,8 @@ singularity exec \
   --ref_fn ${INPUT_DIR}/ref.fa \               ## use your reference file name here
   --threads ${THREADS} \                       ## maximum threads to be used
   --platform ${PLATFORM} \                     ## options: {ont_dorado_drna004, ont_guppy_drna002, ont_guppy_cdna, hifi_sequel2_pbmm2, hifi_sequel2_minimap2, hifi_mas_pbmm2, hifi_sequel2_minimap2}
-  --tag_variant_using_readiportal              ## optional, tag variants using REDIportal dataset 
+  --tag_variant_using_readiportal \            ## optional, tag variants using REDIportal dataset
+  --enable_phasing_model \                     ## optional, enable calling using phasing model 
   --output_dir ${OUTPUT_DIR} \                 ## output path prefix
   --conda_prefix /opt/conda/envs/clair3_rna
 ```
@@ -156,7 +160,7 @@ conda create -n clair3_rna -c conda-forge -c bioconda clair3 mosdepth bedtools -
 source activate clair3_rna
 
 git clone https://github.com/HKU-BAL/Clair3-RNA.git
-cd Clair-RNA
+cd Clair3-RNA
 
 # make sure in conda environment
 # download pre-trained models
@@ -196,7 +200,8 @@ docker run -it hkubal/clair3-rna:latest /opt/bin/clair3_rna --help
   --ref_fn ${INPUT_DIR}/ref.fa \             ## use your reference file name here
   --threads ${THREADS} \                     ## maximum threads to be used
   --platform ${PLATFORM} \                   ## options: {ont_dorado_drna004, ont_guppy_drna002, ont_guppy_cdna, hifi_sequel2_pbmm2, hifi_sequel2_minimap2, hifi_mas_pbmm2, hifi_sequel2_minimap2}
-  --tag_variant_using_readiportal            ## optional, tag variants using REDIportal dataset 
+  --tag_variant_using_readiportal \          ## optional, tag variants using REDIportal dataset
+  --enable_phasing_model \                   ## optional, enable calling using phasing model
   --output_dir ${OUTPUT_DIR}                 ## output path prefix
  
 ## Final output file: ${OUTPUT_DIR}/output.vcf.gz
@@ -233,6 +238,8 @@ docker run -it hkubal/clair3-rna:latest /opt/bin/clair3_rna --help
   -G GENOTYPING_MODE_VCF_FN, --genotyping_mode_vcf_fn GENOTYPING_MODE_VCF_FN
                         VCF file input containing candidate sites to be genotyped. Variants will only be called at the sites in the VCF file if provided.
   -q QUAL, --qual QUAL  If set, variants with >QUAL will be marked as PASS, or LowQual otherwise.
+  --enable_phasing_model
+                        Enable phasing with whatshap or longphase. Usually leads to performance improvement when coverage is sufficient. Default: False.  
   --snp_min_af SNP_MIN_AF
                         Minimal SNP AF required for a variant to be called. Decrease SNP_MIN_AF might increase a bit of sensitivity, but in trade of precision, speed and accuracy. Default: 0.08.
   --indel_min_af INDEL_MIN_AF
@@ -256,11 +263,20 @@ docker run -it hkubal/clair3-rna:latest /opt/bin/clair3_rna --help
   --include_all_ctgs    Call variants on all contigs, otherwise call in chr{1..22} and {1..22}.
   --print_ref_calls     Show reference calls (0/0) in VCF file.
   -d, --dry_run         Print the commands that will be ran.
+  --min_mq MIN_MQ       Minimal mapping quality required for an alignment to be considered. Default: 5.
+  --phased_pileup_model_path PHASED_PILEUP_MODEL_PATH
+                        Specify the path prefix to your own pileup phasing model. Including ${phased_pileup_model_path}.data-00000-of-00001, ${phased_pileup_model_path}.index.
   --python PYTHON       Absolute path of python, python3 >= 3.9 is required.
   --pypy PYPY           Absolute path of pypy3, pypy3 >= 3.6 is required.
   --samtools SAMTOOLS   Absolute path of samtools, samtools version >= 1.10 is required.
   --parallel PARALLEL   Absolute path of parallel, parallel >= 20191122 is required.
-  --min_mq MIN_MQ       Minimal mapping quality required for an alignment to be considered. Default: 5.
+  --longphase LONGPHASE
+                        Absolute path of longphase, longphase >= 1.7 is required.
+  --whatshap WHATSHAP   Absolute path of whatshap, whatshap >= 1.0 is required.
+  --use_longphase_for_intermediate_phasing USE_LONGPHASE_FOR_INTERMEDIATE_PHASING
+                        Use longphase for intermediate phasing. Default:False.
+  --use_longphase_for_intermediate_haplotagging USE_LONGPHASE_FOR_INTERMEDIATE_HAPLOTAGGING
+                        Use longphase for intermediate haplotagging. Default:False.
 ```
 
 #### Call variants in one or multiple chromosomes using the `-C/--ctg_name` parameter
