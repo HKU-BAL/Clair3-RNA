@@ -321,7 +321,7 @@ def CreateTensorPileup(args):
     vcf_fn = args.vcf_fn
     is_known_vcf_file_provided = vcf_fn is not None
     call_snp_only = args.call_snp_only
-    rna_calling_mode = args.rna_calling_mode
+    enable_variant_calling_at_sequence_head_and_tail = args.enable_variant_calling_at_sequence_head_and_tail
 
     global test_pos
     test_pos = None
@@ -422,7 +422,7 @@ def CreateTensorPileup(args):
     pre_pos = -1
     # in rna calling mode, we set the empty tensor as 0 to allow tensor concat
     pileup_channel_size = channel_size + param.phased_channel_size if args.add_phasing_feature else channel_size
-    tensor = [[]] * sliding_window_size if not rna_calling_mode else [[0] * pileup_channel_size] * sliding_window_size
+    tensor = [[]] * sliding_window_size if not enable_variant_calling_at_sequence_head_and_tail else [[0] * pileup_channel_size] * sliding_window_size
     candidate_position = []
     all_alt_dict = {}
     depth_dict = {}
@@ -469,7 +469,7 @@ def CreateTensorPileup(args):
         # start with a new region, clear all sliding windows cache, avoid memory occupation
         if pre_pos + 1 != pos:
             pos_offset = 0
-            tensor = [[]] * sliding_window_size if not rna_calling_mode else [[0] * pileup_channel_size] * sliding_window_size
+            tensor = [[]] * sliding_window_size if not enable_variant_calling_at_sequence_head_and_tail else [[0] * pileup_channel_size] * sliding_window_size
             candidate_position = []
         pre_pos = pos
 
@@ -616,8 +616,8 @@ def main():
     parser.add_argument('--fast_mode', type=str2bool, default=False,
                         help="EXPERIMENTAL: Skip variant candidates with AF <= 0.15, default: %(default)s")
 
-    parser.add_argument('--rna_calling_mode', type=str2bool, default=False,
-                        help="EXPERIMENTAL: Call variants near the read start and read end in rna-seq")
+    parser.add_argument('--enable_variant_calling_at_sequence_head_and_tail', type=str2bool, default=False,
+                        help="EXPERIMENTAL: Enable variant calling in sequence head and tail start or end regions that flanking 16bp windows having no read support. Default: disable.")
 
     parser.add_argument('--minCoverage', type=int, default=2,
                         help="EXPERIMENTAL: Minimum coverage required to call a variant, default: %(default)f")

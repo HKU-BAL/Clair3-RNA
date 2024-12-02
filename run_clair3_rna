@@ -594,6 +594,9 @@ def print_args(args):
     logging("[INFO] ENABLE PRINTING REFERENCE CALLS: {}".format(args.print_ref_calls))
     logging("[INFO] ENABLE INCLUDING ALL CTGS FOR CALLING: {}".format(args.include_all_ctgs))
     logging("[INFO] ENABLE REMOVING INTERMEDIATE FILES: {}".format(args.remove_intermediate_dir))
+    logging("[INFO] ENABLE PHASING MODEL: {}".format(args.enable_phasing_model))
+    logging("[INFO] ENABLE VARIANT CALLING IN SEQUENCE HEAD AND TAIL: {}".format(args.enable_variant_calling_at_sequence_head_and_tail))
+
     logging("")
 
     if args.platform.startswith('ont'):
@@ -637,9 +640,10 @@ def print_command_line(args):
         cmdline += '--pypy {} '.format(args.pypy) if args.pypy != "pypy3" else ""
         cmdline += '--samtools {} '.format(args.samtools) if args.samtools != "samtools" else ""
         cmdline += '--parallel {} '.format(args.parallel) if args.parallel != "parallel" else ""
-        cmdline += '--min_mq {}'.format(args.min_mq) if args.min_mq is not None else ""
+        cmdline += '--min_mq {} '.format(args.min_mq) if args.min_mq is not None else ""
         cmdline += '--tag_variant_using_readiportal ' if args.tag_variant_using_readiportal else ""
         cmdline += '--enable_phasing_model ' if args.enable_phasing_model else ""
+        cmdline += '--enable_variant_calling_at_sequence_head_and_tail ' if args.enable_variant_calling_at_sequence_head_and_tail else ""
         cmdline += '--longphase {} '.format(args.longphase) if args.longphase is not None else ""
         cmdline += '--whatshap {} '.format(args.whatshap) if args.whatshap is not None else ""
         cmdline += '--use_longphase_for_intermediate_phasing {} '.format(args.use_longphase_for_intermediate_phasing) if args.use_longphase_for_intermediate_phasing else ""
@@ -695,7 +699,7 @@ def calling_workflow(args):
     cvp_command += ' --samtools ' + str(args.samtools)
     cvp_command += ' --pileup '
     cvp_command += ' --cmd_fn ' + os.path.join(args.output_dir, 'tmp', 'CMD')
-    cvp_command += ' --show_ref ' if args.print_ref_calls else ""
+    cvp_command += ' --enable_variant_calling_at_sequence_head_and_tail True ' if args.enable_variant_calling_at_sequence_head_and_tail else ""
     cvp_command += ' :::: ' + args.output_dir + '/tmp/CHUNK_LIST'
     cvp_command += ' ) 2>&1 | tee ' + args.output_dir + '/logs/1_call_var_bam_pileup.log'
     commands_list += [cvp_command]
@@ -819,8 +823,8 @@ def calling_workflow(args):
         cvp_command += ' --samtools ' + str(args.samtools)
         cvp_command += ' --pileup '
         cvp_command += ' --cmd_fn ' + os.path.join(args.output_dir, 'tmp', 'CMD')
-        cvp_command += ' --show_ref ' if args.print_ref_calls else ""
         cvp_command += ' --enable_phasing_model True'
+        cvp_command += ' --enable_variant_calling_at_sequence_head_and_tail True ' if args.enable_variant_calling_at_sequence_head_and_tail else ""
         cvp_command += ' :::: ' + args.output_dir + '/tmp/CHUNK_LIST'
         cvp_command += ' ) 2>&1 | tee ' + args.output_dir + '/logs/4_call_var_bam_pileup_phasing.log'
         commands_list += [cvp_command]
@@ -1123,7 +1127,12 @@ def param_parser():
     )
 
     #
-    # Disable C implement with cffi for pileup and full-alignment create tensor, default: enable.'
+    optional_params.add_argument(
+        "--enable_variant_calling_at_sequence_head_and_tail",
+        action='store_true',
+        help='EXPERIMENTAL: Enable variant calling in sequence head and tail start or end regions that flanking 16bp windows having no read support. Default: disable.'
+    )
+
     optional_params.add_argument(
         "--tag_variant_using_readiportal",
         action='store_true',

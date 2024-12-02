@@ -137,7 +137,7 @@ def Run(args):
     haploid_precise_mode = command_option_from(args.haploid_precise, 'haploid_precise')
     haploid_sensitive_mode = command_option_from(args.haploid_sensitive, 'haploid_sensitive')
     output_for_ensemble = command_option_from(args.output_for_ensemble, 'output_for_ensemble')
-    showRef_mode = command_option_from(args.showRef, 'showRef')
+    showRef_mode = command_option_from(args.show_ref, 'showRef')
     qual = command_option_from(args.qual, 'qual', option_value=args.qual)
 
     add_indel_length_mode = CommandOption('add_indel_length', args.add_indel_length)
@@ -151,6 +151,7 @@ def Run(args):
     enable_long_indel_mode = CommandOption('enable_long_indel', args.enable_long_indel)
     keep_iupac_bases_mode = CommandOption('keep_iupac_bases', args.keep_iupac_bases)
     enable_phasing_model = CommandOption('add_phasing_feature', args.enable_phasing_model)
+    enable_variant_calling_at_sequence_head_and_tail_mode = CommandOption('enable_variant_calling_at_sequence_head_and_tail', args.enable_variant_calling_at_sequence_head_and_tail)
 
     ctgStart = None
     ctgEnd = None
@@ -216,6 +217,7 @@ def Run(args):
         CommandOption('minCoverage', args.minCoverage),
         CommandOption('minMQ', args.minMQ),
         enable_phasing_model,
+        enable_variant_calling_at_sequence_head_and_tail_mode,
         ctgStart,
         ctgEnd,
         chunk_id,
@@ -423,6 +425,9 @@ def main():
     parser.add_argument('--keep_iupac_bases', type=str2bool, default=False,
                         help="EXPERIMENTAL: Keep IUPAC (non ACGTN) reference and alternate bases, default: convert all IUPAC bases to N")
 
+    parser.add_argument('--enable_variant_calling_at_sequence_head_and_tail', type=str2bool, default=False,
+                        help="EXPERIMENTAL: Enable variant calling in sequence head and tail start or end regions that flanking 16bp windows having no read support. Default: disable.")
+
     # options for debug purpose
     parser.add_argument('--phasing_info_in_bam', action='store_true',
                         help="DEBUG: Skip phasing and use the phasing info provided in the input BAM (HP tag), default: False")
@@ -492,7 +497,7 @@ def main():
                         help=SUPPRESS)
 
     ## Output reference calls
-    parser.add_argument('--showRef', action='store_false',
+    parser.add_argument('--show_ref', action='store_false',
                         help=SUPPRESS)
 
     ## If defined, added command line into VCF header
