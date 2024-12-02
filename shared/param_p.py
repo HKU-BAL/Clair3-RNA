@@ -1,6 +1,6 @@
 #Clair3-RNA pileup parameters
 caller_name=REPO_NAME="Clair3-RNA"
-version = "0.2.0"
+version = "0.2.1"
 import re
 from itertools import accumulate
 

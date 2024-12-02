@@ -41,6 +41,8 @@ For somatic small variant calling using tumor sample only, please try [ClairS-TO
 ----
 
 ## Latest Updates
+*v0.2.1 (Dec 2, 2024)*: 1. Fixed a bug that misses some variants when `--print_ref_calls` is enabled ([#6](https://github.com/HKU-BAL/Clair3-RNA/issues/6)). 2. Added the  `--enable_variant_calling_at_sequence_head_and_tail` option to enable variant calling at the head and tail 16bp of each sequence. Use with caution because alignments are less reliable in the regions, and there would be insufficient context to be fed to the neural network for reliable calling.
+
 *v0.2.0 (Nov 18, 2024)* : 1. Added a new pileup phasing model (enable by using `--enable_phasing_model` opiton) for ONT dRNA004(`ont_dorado_drna004`), PacBio Iso-Seq(`hifi_sequel2_minimap2`), and PacBio MAS-Seq(`hifi_mas_minimap2`), the SNP performance improved by ~2% and Indel performance improved by ~6%. 2. Fixed some formatting issues in the calling workflow.
 
 *v0.1.0 (Aug 15, 2024)* : 1. Added a new ONT dRNA004 direct RNA sequencing model (`ont_dorado_drna004`) for SQK-RNA004 kit. 2. Added new PacBio Sequel (`hifi_sequel2_minimap2`) and Revio (`hifi_mas_minimap2`) model to support minimap2 alignment. 3. Enhance model training techniques to boost performance by incorporating strategies such as managing low-coverage sites, verifying variant zygosity, filtering RNA editing sites, etc.  4. Renamed all ONT and PacBio model names, check [here](https://github.com/HKU-BAL/Clair3-RNA?tab=readme-ov-file#pre-trained-models) for more details.
@@ -279,6 +281,8 @@ docker run -it hkubal/clair3-rna:latest /opt/bin/clair3_rna --help
                         Use longphase for intermediate phasing. Default:False.
   --use_longphase_for_intermediate_haplotagging USE_LONGPHASE_FOR_INTERMEDIATE_HAPLOTAGGING
                         Use longphase for intermediate haplotagging. Default:False.
+  --enable_variant_calling_at_sequence_head_and_tail
+                        EXPERIMENTAL: Enable variant calling at the head and tail 16bp of each sequence. Default: disable.
 ```
 
 #### Call variants in one or multiple chromosomes using the `-C/--ctg_name` parameter
