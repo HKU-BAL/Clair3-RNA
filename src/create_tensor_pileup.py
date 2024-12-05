@@ -487,6 +487,11 @@ def CreateTensorPileup(args):
                                                                                                    fast_mode=fast_mode,
                                                                                                    call_snp_only=call_snp_only,
                                                                                                    phasing_info=phasing_info)
+
+        # https://github.com/HKU-BAL/Clair3-RNA/issues/6, add reference position into calling when snp or indel af euqal to 0.0
+        if depth > 0 and (minimum_snp_af_for_candidate == 0.0 or minimum_indel_af_for_candidate == 0.0):
+            pass_af = True
+
         if args.gvcf and within_flag and valid_reference_flag:
             cur_n_total = 0
             cur_n_ref = 0
