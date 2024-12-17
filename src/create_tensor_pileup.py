@@ -289,6 +289,26 @@ class TensorStdout(object):
         self.stdin.close()
 
 
+def get_flanked_sequence(reference_sequence, center, flanking_base_num, reference_start):
+    left_start = center - flanking_base_num - reference_start
+    right_end = center + flanking_base_num + 1 - reference_start
+
+    if left_start >= 0 and right_end <= len(reference_sequence):
+        return reference_sequence[left_start:right_end]
+
+    flanked_sequence = []
+
+    if left_start < 0:
+        flanked_sequence.extend(['A'] * abs(left_start))
+        left_start = 0
+
+    flanked_sequence.extend(reference_sequence[left_start:right_end])
+
+    if right_end > len(reference_sequence):
+        flanked_sequence.extend(['A'] * (right_end - len(reference_sequence)))
+
+    return ''.join(flanked_sequence)
+
 def CreateTensorPileup(args):
     """
     Create pileup tensor for pileup model training or calling.
@@ -523,8 +543,7 @@ def CreateTensorPileup(args):
             has_empty_tensor = sum([True for item in tensor if not len(item)])
             if not has_empty_tensor:
                 depth = depth_dict[center]
-                ref_seq = reference_sequence[center - (
-                    flanking_base_num) - reference_start: center + flanking_base_num + 1 - reference_start]
+                ref_seq = get_flanked_sequence(reference_sequence, center, flanking_base_num, reference_start)
                 concat_tensor = tensor[pos_offset:] + tensor[0:pos_offset]
 
                 alt_info = str(depth) + '-' + ' '.join(
@@ -544,6 +563,32 @@ def CreateTensorPileup(args):
                     alt_fp.write(
                         '\t'.join([ctg_name + ' ' + str(center), str(depth), alt_info, str(af_dict[center])]) + '\n')
                 del all_alt_dict[center], depth_dict[center], af_dict[center]
+
+    ##add the remaining position into calling
+    if enable_variant_calling_at_sequence_head_and_tail:
+        ens_pos = pre_pos + flanking_base_num
+        for pos in range(pre_pos + 1, ens_pos + 1):
+            #add padding for the last flanking k position
+            tensor[pos_offset] = [0] * pileup_channel_size
+            pos_offset = (pos_offset + 1) % sliding_window_size
+            if pos - flanking_base_num in candidate_position:
+                center = pos - flanking_base_num
+                has_empty_tensor = sum([True for item in tensor if not len(item)])
+                if not has_empty_tensor:
+                    depth = depth_dict[center]
+                    ref_seq = get_flanked_sequence(reference_sequence, center, flanking_base_num, reference_start)
+                    concat_tensor = tensor[pos_offset:] + tensor[0:pos_offset]
+                    alt_info = str(depth) + '-' + ' '.join(
+                        [' '.join([item[0], str(item[1])]) for item in list(all_alt_dict[center].items())])
+                    l = "%s\t%d\t%s\t%s\t%s" % (
+                        ctg_name,
+                        center,
+                        ref_seq,
+                        " ".join(" ".join("%d" % x for x in innerlist) for innerlist in concat_tensor),
+                        alt_info
+                    )
+                    tensor_can_fp.stdin.write(l)
+                    tensor_can_fp.stdin.write("\n")
 
     if args.gvcf and len(nonVariantCaller.current_block) != 0:
         nonVariantCaller.write_to_gvcf_batch(nonVariantCaller.current_block, nonVariantCaller.cur_min_DP,
