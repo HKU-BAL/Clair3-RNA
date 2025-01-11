@@ -62,6 +62,7 @@ support_platform_dict={
 "hifi_sequel2_pbmm2",
 "hifi_sequel2_minimap2",
 "hifi_mas_pbmm2",
+"hifi_mas_minimap2",
 "hifi_sequel2_minimap2"
 }
 
