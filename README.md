@@ -114,7 +114,7 @@ Check [Usage](#Usage) for more options.
 
 ### Option 2. Singularity
 
-**Caution**: Absolute path is needed for both `INPUT_DIR` and `OUTPUT_DIR` in singularity. 
+**Caution**: 1. Absolute path is needed for both `INPUT_DIR` and `OUTPUT_DIR` in singularity. 2. Please add `--conda_prefix /opt/conda/envs/clair3_rna` to specify the conda environment path.
 
 ```bash
 INPUT_DIR="[YOUR_INPUT_FOLDER]"        # e.g. /home/user1/input (absolute path needed)
