@@ -152,6 +152,7 @@ def Run(args):
     keep_iupac_bases_mode = CommandOption('keep_iupac_bases', args.keep_iupac_bases)
     enable_phasing_model = CommandOption('add_phasing_feature', args.enable_phasing_model)
     enable_variant_calling_at_sequence_head_and_tail_mode = CommandOption('enable_variant_calling_at_sequence_head_and_tail', args.enable_variant_calling_at_sequence_head_and_tail)
+    enable_padding_in_splice_junction_regions_mode = CommandOption('enable_padding_in_splice_junction_regions', args.enable_padding_in_splice_junction_regions)
 
     ctgStart = None
     ctgEnd = None
@@ -218,6 +219,7 @@ def Run(args):
         CommandOption('minMQ', args.minMQ),
         enable_phasing_model,
         enable_variant_calling_at_sequence_head_and_tail_mode,
+        enable_padding_in_splice_junction_regions_mode,
         ctgStart,
         ctgEnd,
         chunk_id,
@@ -427,6 +429,9 @@ def main():
 
     parser.add_argument('--enable_variant_calling_at_sequence_head_and_tail', type=str2bool, default=False,
                         help="EXPERIMENTAL: Enable variant calling in sequence head and tail start or end regions that flanking 16bp windows having no read support. Default: disable.")
+
+    parser.add_argument('--enable_padding_in_splice_junction_regions', type=str2bool, default=False,
+                        help="EXPERIMENTAL: Enable padding in pileup input tensor in splice junction regions and exon boundaries. Default: disable.")
 
     # options for debug purpose
     parser.add_argument('--phasing_info_in_bam', action='store_true',

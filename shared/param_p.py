@@ -43,6 +43,7 @@ partition_size = 500000
 region_size =1000
 phasing_window_size = 30000
 extend_bp=10
+skip_proportion_threshold = 0.2
 
 #Training hyperparameters
 chunk_size = 200

@@ -105,6 +105,11 @@ def generate_tensor(pos, pileup_bases, reference_sequence, reference_start, refe
     del_count = 0
     phasing_idx = 0
     phasing = []
+
+    read_end_count = 0
+    read_start_count = 0
+    ref_skip_start_count = 0
+    ref_skip_end_count = 0
     if phasing_info is not None:
         while base_idx < len(pileup_bases):
             base = pileup_bases[base_idx]
@@ -128,9 +133,15 @@ def generate_tensor(pos, pileup_bases, reference_sequence, reference_start, refe
 
             elif base == '^':  # start of a read, next character is mapping quality
                 base_idx += 1
+                read_start_count += 1
             elif base in '<>':
+                if base == '<':
+                    ref_skip_start_count += 1
+                else:
+                    ref_skip_end_count += 1
                 phasing_idx += 1
-            # elif base == '$': # end of read with '$' symbol
+            elif base == '$': # end of read with '$' symbol
+                read_end_count += 1
             base_idx += 1
     else:
         while base_idx < len(pileup_bases):
@@ -152,9 +163,19 @@ def generate_tensor(pos, pileup_bases, reference_sequence, reference_start, refe
 
             elif base == '^':  # start of a read, next character is mapping quality
                 base_idx += 1
+                read_start_count += 1
+            elif base in '<>':
+                if base == '<':
+                    ref_skip_start_count += 1
+                else:
+                    ref_skip_end_count += 1
+            elif base == '$': # end of read with '$' symbol
+                read_end_count += 1
+
             # elif base == '$': # end of read with '$' symbol
             base_idx += 1
 
+    max_skip_count = max(read_end_count, read_start_count, ref_skip_start_count, ref_skip_end_count)
     base_counter = Counter(base_list)
     if phasing_info is not None:
         AP, CP, GP, TP, IP, DP, AM, CM, GM, TM, IM, DM = [0] * 12
@@ -278,7 +299,7 @@ def generate_tensor(pos, pileup_bases, reference_sequence, reference_start, refe
     pass_af = pass_snp_af if call_snp_only else (pass_af or pass_snp_af or pass_indel_af)
 
     # add a return: base_counter for generating GVCF
-    return pileup_tensor, alt_dict, af, depth, pass_af, pileup_list, max_del_length
+    return pileup_tensor, alt_dict, af, depth, pass_af, pileup_list, max_del_length, max_skip_count
 
 
 class TensorStdout(object):
@@ -342,6 +363,7 @@ def CreateTensorPileup(args):
     is_known_vcf_file_provided = vcf_fn is not None
     call_snp_only = args.call_snp_only
     enable_variant_calling_at_sequence_head_and_tail = args.enable_variant_calling_at_sequence_head_and_tail
+    enable_padding_in_splice_junction_regions = args.enable_padding_in_splice_junction_regions
 
     global test_pos
     test_pos = None
@@ -447,7 +469,7 @@ def CreateTensorPileup(args):
     all_alt_dict = {}
     depth_dict = {}
     af_dict = {}
-
+    max_skip_count_dict = {}
     # to generate gvcf, it is needed to record whole genome statistical information
     if args.gvcf:
         nonVariantCaller = variantInfoCalculator(gvcfWritePath=args.temp_file_dir, ref_path=args.ref_fn,
@@ -495,7 +517,7 @@ def CreateTensorPileup(args):
 
         # a condition to skip some positions creating tensor,but return allele summary
         # allele count function
-        pileup_tensor, alt_dict, af, depth, pass_af, pileup_list, max_del_length = generate_tensor(pos=pos,
+        pileup_tensor, alt_dict, af, depth, pass_af, pileup_list, max_del_length, max_skip_count = generate_tensor(pos=pos,
                                                                                                    pileup_bases=pileup_bases,
                                                                                                    reference_sequence=reference_sequence,
                                                                                                    reference_start=reference_start,
@@ -507,7 +529,9 @@ def CreateTensorPileup(args):
                                                                                                    fast_mode=fast_mode,
                                                                                                    call_snp_only=call_snp_only,
                                                                                                    phasing_info=phasing_info)
-
+        if enable_padding_in_splice_junction_regions:
+            max_skip_count_dict[pos] = max_skip_count
+            depth_dict[pos] = depth
         # https://github.com/HKU-BAL/Clair3-RNA/issues/6, add reference position into calling when snp or indel af euqal to 0.0
         if depth > 0 and (minimum_snp_af_for_candidate == 0.0 or minimum_indel_af_for_candidate == 0.0):
             pass_af = True
@@ -545,6 +569,28 @@ def CreateTensorPileup(args):
                 depth = depth_dict[center]
                 ref_seq = get_flanked_sequence(reference_sequence, center, flanking_base_num, reference_start)
                 concat_tensor = tensor[pos_offset:] + tensor[0:pos_offset]
+
+                if enable_padding_in_splice_junction_regions:
+                    max_depth = max([depth_dict[p] for p in range(center - flanking_base_num, center + flanking_base_num + 1) if p in depth_dict])
+                    max_skip_count = max([max_skip_count_dict[p] for p in range(center - flanking_base_num, center + flanking_base_num + 1) if p in max_skip_count_dict])
+
+                    if max_skip_count / float(max_depth) > param.skip_proportion_threshold:
+                        #add depth in ref_pos
+                        center_strand = center - reference_start
+                        ref = reference_sequence[center_strand]
+                        strand_forward = concat_tensor[flanking_base_num][BASE2INDEX[ref.upper()]]
+                        strand_reverse = concat_tensor[flanking_base_num][BASE2INDEX[ref.lower()]]
+                        strand_forward = -1 * strand_forward if strand_forward < 0 else strand_forward
+                        strand_reverse = -1 * strand_reverse if strand_reverse < 0 else strand_reverse
+                        strand_forward_pct = strand_forward / float(strand_forward + strand_reverse) if strand_forward + strand_reverse > 0 else 0
+                        strand_reverse_pct = 1 - strand_forward_pct
+                        for idx in range(flanking_base_num * 2 + 1):
+                            p = center - flanking_base_num + idx
+                            current_depth = depth_dict[p] if p in depth_dict else 0
+                            if current_depth < depth * param.skip_proportion_threshold and idx != flanking_base_num:
+                                ref = reference_sequence[p - reference_start].upper()
+                                concat_tensor[idx][BASE2INDEX[ref.upper()]] = -1 * int(depth * strand_forward_pct)
+                                concat_tensor[idx][BASE2INDEX[ref.lower()]] = -1 * int(depth * strand_reverse_pct)
 
                 alt_info = str(depth) + '-' + ' '.join(
                     [' '.join([item[0], str(item[1])]) for item in list(all_alt_dict[center].items())])
@@ -668,6 +714,9 @@ def main():
 
     parser.add_argument('--enable_variant_calling_at_sequence_head_and_tail', type=str2bool, default=False,
                         help="EXPERIMENTAL: Enable variant calling in sequence head and tail start or end regions that flanking 16bp windows having no read support. Default: disable.")
+
+    parser.add_argument('--enable_padding_in_splice_junction_regions', type=str2bool, default=False,
+                        help="EXPERIMENTAL: Enable padding in pileup input tensor in splice junction regions and exon boundaries. Default: disable.")
 
     parser.add_argument('--minCoverage', type=int, default=2,
                         help="EXPERIMENTAL: Minimum coverage required to call a variant, default: %(default)f")
