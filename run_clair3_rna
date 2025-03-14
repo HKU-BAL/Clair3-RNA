@@ -596,6 +596,7 @@ def print_args(args):
     logging("[INFO] ENABLE REMOVING INTERMEDIATE FILES: {}".format(args.remove_intermediate_dir))
     logging("[INFO] ENABLE PHASING MODEL: {}".format(args.enable_phasing_model))
     logging("[INFO] ENABLE VARIANT CALLING IN SEQUENCE HEAD AND TAIL: {}".format(args.enable_variant_calling_at_sequence_head_and_tail))
+    logging("[INFO] ENABLE PADDING IN SPLICE JUNCTION REGIONS: {}".format(args.enable_padding_in_splice_junction_regions))
 
     logging("")
 
@@ -644,6 +645,7 @@ def print_command_line(args):
         cmdline += '--tag_variant_using_readiportal ' if args.tag_variant_using_readiportal else ""
         cmdline += '--enable_phasing_model ' if args.enable_phasing_model else ""
         cmdline += '--enable_variant_calling_at_sequence_head_and_tail ' if args.enable_variant_calling_at_sequence_head_and_tail else ""
+        cmdline += '--enable_padding_in_splice_junction_regions ' if args.enable_padding_in_splice_junction_regions else ""
         cmdline += '--longphase {} '.format(args.longphase) if args.longphase is not None else ""
         cmdline += '--whatshap {} '.format(args.whatshap) if args.whatshap is not None else ""
         cmdline += '--use_longphase_for_intermediate_phasing {} '.format(args.use_longphase_for_intermediate_phasing) if args.use_longphase_for_intermediate_phasing else ""
@@ -700,6 +702,7 @@ def calling_workflow(args):
     cvp_command += ' --pileup '
     cvp_command += ' --cmd_fn ' + os.path.join(args.output_dir, 'tmp', 'CMD')
     cvp_command += ' --enable_variant_calling_at_sequence_head_and_tail True ' if args.enable_variant_calling_at_sequence_head_and_tail else ""
+    cvp_command += ' --enable_padding_in_splice_junction_regions True ' if args.enable_padding_in_splice_junction_regions else ""
     cvp_command += ' :::: ' + args.output_dir + '/tmp/CHUNK_LIST'
     cvp_command += ' ) 2>&1 | tee ' + args.output_dir + '/logs/1_call_var_bam_pileup.log'
     commands_list += [cvp_command]
@@ -825,6 +828,7 @@ def calling_workflow(args):
         cvp_command += ' --cmd_fn ' + os.path.join(args.output_dir, 'tmp', 'CMD')
         cvp_command += ' --enable_phasing_model True'
         cvp_command += ' --enable_variant_calling_at_sequence_head_and_tail True ' if args.enable_variant_calling_at_sequence_head_and_tail else ""
+        cvp_command += ' --enable_padding_in_splice_junction_regions True ' if args.enable_padding_in_splice_junction_regions else ""
         cvp_command += ' :::: ' + args.output_dir + '/tmp/CHUNK_LIST'
         cvp_command += ' ) 2>&1 | tee ' + args.output_dir + '/logs/4_call_var_bam_pileup_phasing.log'
         commands_list += [cvp_command]
@@ -926,7 +930,7 @@ def param_parser():
         required=True,
         type=str,
         default=None,
-        help="Select the sequencing platform of the input. Possible options: {ont_r9_guppy_cdna, ont_r9_guppy_drna, hifi_sequel2, hifi_mas}."
+        help="Select the sequencing platform of the input. Possible options: {ont_dorado_drna004, ont_r10_dorado_cdna, ont_guppy_drna002, ont_guppy_cdna, hifi_sequel2_pbmm2, hifi_sequel2_minimap2, hifi_mas_pbmm2, hifi_sequel2_minimap2}."
     )
 
     optional_params = parser.add_argument_group('Optional parameters')
@@ -1126,11 +1130,16 @@ def param_parser():
         help="Minimal mapping quality required for an alignment to be considered. Default: 5."
     )
 
-    #
     optional_params.add_argument(
         "--enable_variant_calling_at_sequence_head_and_tail",
         action='store_true',
         help='EXPERIMENTAL: Enable variant calling in sequence head and tail start or end regions that flanking 16bp windows having no read support. Default: disable.'
+    )
+
+    optional_params.add_argument(
+        "--enable_padding_in_splice_junction_regions",
+        action='store_true',
+        help='EXPERIMENTAL: Enable padding in pileup input tensor in splice junction regions and exon boundaries. Default: disable.'
     )
 
     optional_params.add_argument(

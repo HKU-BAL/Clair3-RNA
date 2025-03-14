@@ -43,6 +43,7 @@ partition_size = 500000
 region_size =1000
 phasing_window_size = 30000
 extend_bp=10
+skip_proportion_threshold = 0.2
 
 #Training hyperparameters
 chunk_size = 200
@@ -58,7 +59,8 @@ RANDOM_SEED = None
 support_platform_dict={
 "ont_dorado_drna004",
 "ont_guppy_drna002",
-"ont_guppy_cdna",
+"ont_r9_guppy_cdna",
+"ont_r10_dorado_cdna",
 "hifi_sequel2_pbmm2",
 "hifi_sequel2_minimap2",
 "hifi_mas_pbmm2",
@@ -67,7 +69,7 @@ support_platform_dict={
 }
 
 model_name_platform_dict = {
-    'ont_r9_guppy_cdna': 'ont_guppy_cdna',
+    'ont_guppy_cdna': 'ont_r9_guppy_cdna',
     'ont_r9_guppy_drna': 'ont_guppy_drna002',
     'hifi_sequel2': 'hifi_sequel2_pbmm2',
     'hifi_mas': 'hifi_mas_pbmm2'
@@ -75,8 +77,7 @@ model_name_platform_dict = {
 
 support_phasing_platform_dict={
 "ont_dorado_drna004",
-"ont_guppy_drna002",
-"ont_guppy_cdna",
+"ont_r10_dorado_cdna",
 "hifi_mas_minimap2",
 "hifi_sequel2_minimap2"
 }
