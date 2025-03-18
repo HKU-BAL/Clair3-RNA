@@ -77,14 +77,14 @@ Check [Usage](#Usage) for more options.
 
 Clair-RNA was trained using GIAB RNA sequencing data. All models were trained with chr20 excluded (including only chr1-19, 21, 22). 
 
-|         Platform         |       Chemistry/Kit/Instruments       | Basecaller | Aligner |           Option (`-p/--platform`)            |   Reference   | Training samples |
-| :----------------------: |:-------------------------------------:| :--------: | :----------------------: |:---------------------------------------------:| ---------------- | :--------------: |
-| ONT | SQK-RNA004 kit, direct RNA sequencing | Dorado | minimap2 |             `ont_dorado_drna004`              | GRCh38 | HG002 |
-| ONT | R10.4.1, complementary DNA sequencing | Dorado | minimap2 |             `ont_r10_dorado_cdna`              | GRCh38 | HG002 |
-| ONT | SQK-RNA002 kit, direct RNA sequencing | Guppy | minimap2 |              `ont_guppy_drna002`              | GRCh38 | HG002 |
-|           ONT            | R9.4.1, complementary DNA sequencing  |   Guppy    | minimap2 |               `ont_guppy_cdna`                | GRCh38 | HG002       |
-|       PacBio HiFi       |        Sequel with Iso-Seq kit        |     -      | pbmm2/minimap2 | `hifi_sequel2_pbmm2`, `hifi_sequel2_minimap2` | GRCh38 | HG002            |
-|       PacBio HiFi    |        Revio with MAS-Seq kit         |     -      | pbmm2/minimap2 |     `hifi_mas_pbmm2`, `hifi_mas_minimap2`     | GRCh38 | HG002            |
+|         Platform         |       Chemistry/Kit/Instruments       | Basecaller | Aligner |           Support  phasing model (`--enable_phasing_model`)?           |           Option (`-p/--platform`)            |   Reference   | Training samples |
+| :----------------------: |:-------------------------------------:| :--------: | :----------------------: |:---------------------------------------------:| ---------------- | :--------------: | ---------------- |
+| ONT | SQK-RNA004 kit, direct RNA sequencing | Dorado | minimap2 |             Yes             |             `ont_dorado_drna004`              | GRCh38 | HG002 |
+| ONT | R10.4.1, complementary DNA sequencing | Dorado | minimap2 |             Yes           |             Yes`ont_r10_dorado_cdna`           | GRCh38 | HG002 |
+| ONT | SQK-RNA002 kit, direct RNA sequencing | Guppy | minimap2 |                            |              `ont_guppy_drna002`              | GRCh38 | HG002 |
+|           ONT            | R9.4.1, complementary DNA sequencing  |   Guppy    | minimap2 |                               |               `ont_guppy_cdna`                | GRCh38 | HG002       |
+|       PacBio HiFi       |        Sequel with Iso-Seq kit        |     -      | pbmm2/minimap2 | Yes for `hifi_sequel2_minimap2` | `hifi_sequel2_pbmm2`, `hifi_sequel2_minimap2` | GRCh38 | HG002            |
+|       PacBio HiFi    |        Revio with MAS-Seq kit         |     -      | pbmm2/minimap2 |     Yes for `hifi_mas_minimap2`     |     `hifi_mas_pbmm2`, `hifi_mas_minimap2`     | GRCh38 | HG002            |
 
 
 ------
