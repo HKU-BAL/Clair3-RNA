@@ -260,7 +260,7 @@ def samtools_view_process_from(
 
 def get_header(reference_file_path=None, cmd_fn=None, sample_name="SAMPLE", version='0.0.1', gvcf=False):
     from textwrap import dedent
-
+    from shared.param_p import version
     if reference_file_path is None or not os.path.exists(reference_file_path):
         ref_header_str = ""
     else:

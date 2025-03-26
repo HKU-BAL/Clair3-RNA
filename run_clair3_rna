@@ -530,7 +530,7 @@ def check_args(args):
         args.chunk_size = param.CHUNK_SIZE
 
     if args.platform not in param.support_platform_dict:
-        logging(log_error('[ERROR] Invalid platform input, optional: \{{}\}'.format(param.support_platform_dict)))
+        sys.exit(log_error('[ERROR] Invalid platform input, optional: {}'.format(', '.join(list(param.support_platform_dict)))))
 
     if args.qual is None:
         args.qual = param.qual_cut_off
