@@ -14,7 +14,7 @@ Email: {rbluo,zxzheng}@cs.hku.hk
 
 ## Introduction
 
-Clair3-RNA is a small variant caller for **long-read RNA sequencing (lrRNA-seq)** data. Clair3-RNA supports ONT complementary DNA sequencing (cDNA) and direct RNA sequencing (dRNA). dRNA sequencing support the ONT latest [SQK-RNA004 kit](https://community.nanoporetech.com/docs/prepare/library_prep_protocols/direct-rna-sequencing-sqk-rna004/v/drs_9195_v4_revd_20sep2023) data for variant calling. Clair3-RNA also supports PacBio Sequel and PacBio MAS-Seq RNA sequencing data. Clair3-RNA reached a ~95% F1-score for ONT dRNA using SQK-RNA004 kit and ~96% F1-score using PacBio Iso-Seq and MAS-Seq, respectively, with at least ten supporting reads and disregarding the zygosity. With read phased, the performance reached ~97% for ONT and ~98% for PacBio.
+Clair3-RNA is a small variant caller for **long-read RNA sequencing (lrRNA-seq)** data. Clair3-RNA supports ONT R10.4.1 and R9.4.1 complementary DNA sequencing (cDNA) and direct RNA sequencing (dRNA). dRNA sequencing support the ONT latest [SQK-RNA004 kit](https://community.nanoporetech.com/docs/prepare/library_prep_protocols/direct-rna-sequencing-sqk-rna004/v/drs_9195_v4_revd_20sep2023) data for variant calling. Clair3-RNA also supports PacBio Sequel and PacBio MAS-Seq RNA sequencing data. Clair3-RNA reached a ~95% F1-score for ONT dRNA using SQK-RNA004 kit and ~96% F1-score using PacBio Iso-Seq and MAS-Seq, respectively, with at least ten supporting reads and disregarding the zygosity. With read phased, the performance reached ~97% for ONT and ~98% for PacBio.
 
 A preprint describing Clair3-RNA's algorithms and results is at [bioRxiv](https://doi.org/10.1101/2024.11.17.624050).
 
@@ -80,7 +80,7 @@ Clair-RNA was trained using GIAB RNA sequencing data. All models were trained wi
 |         Platform         |       Chemistry/Kit/Instruments       | Basecaller | Aligner |           Support  phasing model (`--enable_phasing_model`)?           |           Option (`-p/--platform`)            |   Reference   | Training samples |
 | :----------------------: |:-------------------------------------:| :--------: | :----------------------: |:---------------------------------------------:| ---------------- | :--------------: | ---------------- |
 | ONT | SQK-RNA004 kit, direct RNA sequencing | Dorado | minimap2 |             Yes             |             `ont_dorado_drna004`              | GRCh38 | HG002 |
-| ONT | R10.4.1, complementary DNA sequencing | Dorado | minimap2 |             Yes           |             Yes`ont_r10_dorado_cdna`           | GRCh38 | HG002 |
+| ONT | R10.4.1, complementary DNA sequencing | Dorado | minimap2 |             Yes           |             `ont_r10_dorado_cdna`           | GRCh38 | HG002 |
 | ONT | SQK-RNA002 kit, direct RNA sequencing | Guppy | minimap2 |                            |              `ont_guppy_drna002`              | GRCh38 | HG002 |
 |           ONT            | R9.4.1, complementary DNA sequencing  |   Guppy    | minimap2 |                               |               `ont_guppy_cdna`                | GRCh38 | HG002       |
 |       PacBio HiFi       |        Sequel with Iso-Seq kit        |     -      | pbmm2/minimap2 | Yes for `hifi_sequel2_minimap2` | `hifi_sequel2_pbmm2`, `hifi_sequel2_minimap2` | GRCh38 | HG002            |
