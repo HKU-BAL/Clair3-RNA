@@ -41,7 +41,7 @@ For somatic small variant calling using tumor sample only, please try [ClairS-TO
 ----
 
 ## Latest Updates
-*v0.2.2 (Mar 13, 2025)*: 1. Added a new ONT R10 cDNA model (`ont_r10_dorado_cdna`) for R10.4.1 chemistry. 2. Added the  `--enable_padding_in_splice_junction_regions` option to enable padding in pileup input tensor in splice junction regions and exon boundaries. 3. Added chromosomes X and Y to the default contigs when the `--include_all_ctgs` option is not specified 
+*v0.2.2 (Mar 13, 2025)*: 1. Added a new ONT R10 cDNA model (`ont_r10_dorado_cdna`) for R10.4.1 chemistry. 2. Added the  `--enable_padding_in_splice_junction_regions` option to enable padding in pileup input tensor in splice junction regions and exon boundaries. 3. Added chromosomes X and Y to the default contigs when the `--include_all_ctgs` option is not specified.
 
 *v0.2.1 (Dec 2, 2024)*: 1. Fixed a bug that misses some variants when `--print_ref_calls` is enabled ([#6](https://github.com/HKU-BAL/Clair3-RNA/issues/6)). 2. Added the  `--enable_variant_calling_at_sequence_head_and_tail` option to enable variant calling at the head and tail 16bp of each sequence. Use with caution because alignments are less reliable in the regions, and there would be insufficient context to be fed to the neural network for reliable calling.
 
