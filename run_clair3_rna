@@ -947,7 +947,7 @@ def param_parser():
         "--ctg_name",
         type=str,
         default=None,
-        help="The name of the contigs to be processed. Split by ',' for multiple contigs. Default: call in chr{1..22} and {1..22}."
+        help="The name of the contigs to be processed. Split by ',' for multiple contigs. Default: call in chr{1..22,X,Y} and {1..22,X,Y}."
     )
 
     region_group = optional_params.add_mutually_exclusive_group(required=False)
@@ -1038,7 +1038,7 @@ def param_parser():
     optional_params.add_argument(
         "--include_all_ctgs",
         action='store_true',
-        help="Call variants on all contigs, otherwise call in chr{1..22} and {1..22}."
+        help="Call variants on all contigs, otherwise call in chr{1..22,X,Y} and {1..22,X,Y}."
     )
 
     optional_params.add_argument(
