@@ -329,7 +329,7 @@ def check_contigs_intersection(args, fai_fn):
     contig_set = set(args.ctg_name.split(',')) if is_ctg_name_list_provided else set()
 
     if not args.include_all_ctgs:
-        logging("[INFO] --include_all_ctgs not enabled, use chr{1..22} and {1..22} by default")
+        logging("[INFO] --include_all_ctgs not enabled, use chr{1..22,X,Y} and {1..22,X,Y} by default")
     else:
         logging("[INFO] --include_all_ctgs enabled")
 
