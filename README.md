@@ -237,7 +237,7 @@ docker run -it hkubal/clair3-rna:latest /opt/bin/clair3_rna --help
   -P PILEUP_MODEL_PATH, --pileup_model_path PILEUP_MODEL_PATH
                         Specify the path prefix to your own pileup model. Including ${pileup_model_path}.data-00000-of-00001, ${pileup_model_path}.index.
   -c CTG_NAME, --ctg_name CTG_NAME
-                        The name of the contigs to be processed. Split by ',' for multiple contigs. Default: call in chr{1..22} and {1..22}.
+                        The name of the contigs to be processed. Split by ',' for multiple contigs. Default: call in chr{1..22,X,Y} and {1..22,X,Y}.
   -r REGION, --region REGION
                         A region to be processed. Format: `ctg_name:start-end` (start is 1-based).
   -b BED_FN, --bed_fn BED_FN
@@ -267,7 +267,7 @@ docker run -it hkubal/clair3-rna:latest /opt/bin/clair3_rna --help
                         Prefix for output VCF filename. Default: output.
   --remove_intermediate_dir
                         Remove intermediate directory before finishing to save disk space.
-  --include_all_ctgs    Call variants on all contigs, otherwise call in chr{1..22} and {1..22}.
+  --include_all_ctgs    Call variants on all contigs, otherwise call in chr{1..22,X,Y} and {1..22,X,Y}.
   --print_ref_calls     Show reference calls (0/0) in VCF file.
   -d, --dry_run         Print the commands that will be ran.
   --min_mq MIN_MQ       Minimal mapping quality required for an alignment to be considered. Default: 5.
