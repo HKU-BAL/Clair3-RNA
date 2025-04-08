@@ -82,7 +82,7 @@ Clair-RNA was trained using GIAB RNA sequencing data. All models were trained wi
 | ONT | SQK-RNA004 kit, direct RNA sequencing | Dorado | minimap2 |             Yes             |             `ont_dorado_drna004`              | GRCh38 | HG002 |
 | ONT | R10.4.1, complementary DNA sequencing | Dorado | minimap2 |             Yes           |             `ont_r10_dorado_cdna`           | GRCh38 | HG002 |
 | ONT | SQK-RNA002 kit, direct RNA sequencing | Guppy | minimap2 |                            |              `ont_guppy_drna002`              | GRCh38 | HG002 |
-|           ONT            | R9.4.1, complementary DNA sequencing  |   Guppy    | minimap2 |                               |               `ont_guppy_cdna`                | GRCh38 | HG002       |
+|           ONT            | R9.4.1, complementary DNA sequencing  |   Guppy    | minimap2 |                               |               `ont_r9_guppy_cdna`                | GRCh38 | HG002       |
 |       PacBio HiFi       |        Sequel with Iso-Seq kit        |     -      | pbmm2/minimap2 | Yes for `hifi_sequel2_minimap2` | `hifi_sequel2_pbmm2`, `hifi_sequel2_minimap2` | GRCh38 | HG002            |
 |       PacBio HiFi    |        Revio with MAS-Seq kit         |     -      | pbmm2/minimap2 |     Yes for `hifi_mas_minimap2`     |     `hifi_mas_pbmm2`, `hifi_mas_minimap2`     | GRCh38 | HG002            |
 
@@ -107,7 +107,7 @@ docker run -it \
   --bam_fn ${INPUT_DIR}/input.bam \      ## use your input bam file name here
   --ref_fn ${INPUT_DIR}/ref.fa \         ## use your reference file name here
   --threads ${THREADS} \                 ## maximum threads to be used
-  --platform ${PLATFORM} \               ## options: {ont_dorado_drna004, ont_r10_dorado_cdna, ont_guppy_drna002, ont_guppy_cdna, hifi_sequel2_pbmm2, hifi_sequel2_minimap2, hifi_mas_pbmm2, hifi_sequel2_minimap2}
+  --platform ${PLATFORM} \               ## options: {ont_dorado_drna004, ont_r10_dorado_cdna, ont_guppy_drna002, ont_r9_guppy_cdna, hifi_sequel2_pbmm2, hifi_sequel2_minimap2, hifi_mas_pbmm2, hifi_sequel2_minimap2}
   --tag_variant_using_readiportal \      ## optional, tag variants using REDIportal dataset
   --enable_phasing_model \               ## optional, enable calling using phasing model
   --output_dir ${OUTPUT_DIR}             ## output path prefix 
@@ -139,7 +139,7 @@ singularity exec \
   --bam_fn ${INPUT_DIR}/input.bam \            ## use your input bam file name here
   --ref_fn ${INPUT_DIR}/ref.fa \               ## use your reference file name here
   --threads ${THREADS} \                       ## maximum threads to be used
-  --platform ${PLATFORM} \                     ## options: {ont_dorado_drna004, ont_r10_dorado_cdna, ont_guppy_drna002, ont_guppy_cdna, hifi_sequel2_pbmm2, hifi_sequel2_minimap2, hifi_mas_pbmm2, hifi_sequel2_minimap2}
+  --platform ${PLATFORM} \                     ## options: {ont_dorado_drna004, ont_r10_dorado_cdna, ont_guppy_drna002, ont_r9_guppy_cdna, hifi_sequel2_pbmm2, hifi_sequel2_minimap2, hifi_mas_pbmm2, hifi_sequel2_minimap2}
   --tag_variant_using_readiportal \            ## optional, tag variants using REDIportal dataset
   --enable_phasing_model \                     ## optional, enable calling using phasing model 
   --output_dir ${OUTPUT_DIR} \                 ## output path prefix
@@ -206,7 +206,7 @@ docker run -it hkubal/clair3-rna:latest /opt/bin/clair3_rna --help
   --bam_fn ${INPUT_DIR}/input.bam \          ## use your input bam file name here
   --ref_fn ${INPUT_DIR}/ref.fa \             ## use your reference file name here
   --threads ${THREADS} \                     ## maximum threads to be used
-  --platform ${PLATFORM} \                   ## options: {ont_dorado_drna004, ont_r10_dorado_cdna, ont_guppy_drna002, ont_guppy_cdna, hifi_sequel2_pbmm2, hifi_sequel2_minimap2, hifi_mas_pbmm2, hifi_sequel2_minimap2}
+  --platform ${PLATFORM} \                   ## options: {ont_dorado_drna004, ont_r10_dorado_cdna, ont_guppy_drna002, ont_r9_guppy_cdna, hifi_sequel2_pbmm2, hifi_sequel2_minimap2, hifi_mas_pbmm2, hifi_sequel2_minimap2}
   --tag_variant_using_readiportal \          ## optional, tag variants using REDIportal dataset
   --enable_phasing_model \                   ## optional, enable calling using phasing model
   --output_dir ${OUTPUT_DIR}                 ## output path prefix
@@ -228,7 +228,7 @@ docker run -it hkubal/clair3-rna:latest /opt/bin/clair3_rna --help
   -t THREADS, --threads THREADS
                         Max #threads to be used.
   -p PLATFORM, --platform PLATFORM
-                        Select the sequencing platform of the input. Possible options: {ont_dorado_drna004, ont_r10_dorado_cdna, ont_guppy_drna002, ont_guppy_cdna, hifi_sequel2_pbmm2, hifi_sequel2_minimap2, hifi_mas_pbmm2, hifi_sequel2_minimap2}.
+                        Select the sequencing platform of the input. Possible options: {ont_dorado_drna004, ont_r10_dorado_cdna, ont_guppy_drna002, ont_r9_guppy_cdna, hifi_sequel2_pbmm2, hifi_sequel2_minimap2, hifi_mas_pbmm2, hifi_sequel2_minimap2}.
 ```
 
 **Miscellaneous parameters:**
