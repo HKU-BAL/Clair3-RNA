@@ -930,7 +930,7 @@ def param_parser():
         required=True,
         type=str,
         default=None,
-        help="Select the sequencing platform of the input. Possible options: {ont_dorado_drna004, ont_r10_dorado_cdna, ont_guppy_drna002, ont_guppy_cdna, hifi_sequel2_pbmm2, hifi_sequel2_minimap2, hifi_mas_pbmm2, hifi_sequel2_minimap2}."
+        help="Select the sequencing platform of the input. Possible options: {ont_dorado_drna004, ont_r10_dorado_cdna, ont_guppy_drna002, ont_r9_guppy_cdna, hifi_sequel2_pbmm2, hifi_sequel2_minimap2, hifi_mas_pbmm2, hifi_sequel2_minimap2}."
     )
 
     optional_params = parser.add_argument_group('Optional parameters')
