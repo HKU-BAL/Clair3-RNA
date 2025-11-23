@@ -192,7 +192,7 @@ cd Clair-RNA
 docker build -f ./Dockerfile -t hkubal/clair3-rna:latest .
 
 # run the docker image like option 1
-docker run -it hkubal/clair3-rna:latest /opt/bin/clair3_rna --help
+docker run -it hkubal/clair3-rna:latest /opt/bin/run_clair3_rna --help
 ```
 
 ------
