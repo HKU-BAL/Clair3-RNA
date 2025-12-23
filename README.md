@@ -16,7 +16,7 @@ Email: {rbluo,zxzheng}@cs.hku.hk
 
 Clair3-RNA is a small variant caller for **long-read RNA sequencing (lrRNA-seq)** data. Clair3-RNA supports ONT R10.4.1 and R9.4.1 complementary DNA sequencing (cDNA) and direct RNA sequencing (dRNA). dRNA sequencing support the ONT latest [SQK-RNA004 kit](https://community.nanoporetech.com/docs/prepare/library_prep_protocols/direct-rna-sequencing-sqk-rna004/v/drs_9195_v4_revd_20sep2023) data for variant calling. Clair3-RNA also supports PacBio Sequel and PacBio MAS-Seq RNA sequencing data. Clair3-RNA reached a ~95% F1-score for ONT dRNA using SQK-RNA004 kit and ~96% F1-score using PacBio Iso-Seq and MAS-Seq, respectively, with at least ten supporting reads and disregarding the zygosity. With read phased, the performance reached ~97% for ONT and ~98% for PacBio.
 
-A preprint describing Clair3-RNA's algorithms and results is at [bioRxiv](https://doi.org/10.1101/2024.11.17.624050).
+Clair3-RNA is published at [Nature Communications](https://doi.org/10.1038/s41467-025-67237-y), and available as a preprint at [bioRxiv](https://doi.org/10.1101/2024.11.17.624050).
 
 For germline small variant calling, please use [Clair3](https://github.com/HKU-BAL/Clair3). 
 
