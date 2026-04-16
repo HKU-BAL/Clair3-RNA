@@ -24,6 +24,8 @@ For somatic small variant calling using a tumor-normal pair, please try [ClairS]
 
 For somatic small variant calling using tumor sample only, please try [ClairS-TO](https://github.com/HKU-BAL/ClairS-TO).
 
+If you need agentic AI skill (Claude Code, Cursor, Codex…) for the Clair3-RNA, please try [Clair-skills](https://github.com/HKU-BAL/Clair-skills).
+
 ----
 
 ## Contents
